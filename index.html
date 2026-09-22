@@ -334,8 +334,733 @@ body.dragging::after{content:"Slip filerne her";position:fixed;inset:14px;z-inde
 /* ================= Konstanter ================= */
 const CAT_COLORS=['#5eead4','#ffb02e','#7cc4ff','#f28ab2','#b7a4ff','#9be564','#ff8a5c','#e6d36f','#8fa9ff','#a3b6b5'];
 const EMOJIS=['📊','♻️','💰','📦','🧾','📈','🗂️','⚙️','🏭','🧮','📅','🔧','🌍','🧪','🚚','👥'];
-const SORTS={recent:'Senest brugt',name:'Navn A–Å',opens:'Mest brugt',modified:'Sidst ændret (fil)',added:'Senest tilføjet',due:'Frist'};
+const SORT_KEYS=['recent','name','opens','modified','added','due'];
 const TYPES={excel:['X','#1d7a46','#fff'],'excel-url':['X','#1d7a46','#fff'],csv:['CSV','#3f8f6f','#fff'],pbi:['BI','#f2c811','#1a1a1a'],word:['W','#2b5eb8','#fff'],pdf:['PDF','#c8382d','#fff'],ppt:['P','#d2582b','#fff'],folder:['📁','var(--panel2)','var(--text)'],link:['🔗','var(--panel2)','var(--text)'],other:['•','var(--panel2)','var(--muted)']};
+/* ================= Sprog (da/en) ================= */
+function lang(){if(S&&S.settings&&S.settings.lang) return S.settings.lang;return (navigator.language||'da').toLowerCase().startsWith('en')?'en':'da'}
+function t(key,...args){
+  const e=(STR[lang()]||STR.da)[key];
+  if(e==null) return key;
+  return typeof e==='function'?e(...args):e;
+}
+function plural(n,daOne,daMany,enOne,enMany){return n+' '+(lang()==='en'?(n===1?enOne:enMany):(n===1?daOne:daMany))}
+const dateLocale=()=>lang()==='en'?'en-GB':'da-DK';
+const STR={
+da:{
+'noHub':'Uden hub',
+'deadline':'Frist',
+'rel.now':'lige nu',
+'rel.minAgo':m=>'for '+m+' min siden',
+'rel.hAgo':t=>'for '+t+' t siden',
+'rel.dayAgo':d=>'for '+d+(d===1?' dag':' dage')+' siden',
+'due.overdue':n=>(-n)+(n===-1?' dag':' dage')+' over fristen',
+'due.today':'i dag',
+'due.tomorrow':'i morgen',
+'due.inDays':n=>'om '+n+' dage',
+'status.url':'Online-link (kontrolleres ikke)',
+'status.unk':'Ikke kontrolleret endnu',
+'status.warn':'Intet svar – er netværksdrevet tilgængeligt?',
+'status.ok':'Filen findes',
+'status.bad':'Filen blev ikke fundet – er den flyttet, omdøbt eller slettet?',
+'toast.opening':title=>'Åbner '+title+'…',
+'toast.pathCopied':'Sti kopieret',
+'toast.copyFailed':'Kunne ikke kopiere',
+'save.saving':'Gemmer…',
+'save.saved':'Gemt',
+'save.failed':'Kunne ikke gemme',
+'save.failedWithMsg':m=>'Kunne ikke gemme: '+m,
+'check.checking':'Tjekker…',
+'check.failed':m=>'Kunne ikke tjekke filer: '+m,
+'check.notFoundN':bad=>bad+(bad===1?' fil blev ikke fundet':' filer blev ikke fundet'),
+'check.allFound':'Alle filer blev fundet',
+'common.cancel':'Annullér',
+'common.close':'Luk',
+'common.save':'Gem',
+'common.remove':'Fjern',
+'common.edit':'Redigér…',
+'nav.overview':'Overblik',
+'nav.allFiles':'Alle filer',
+'nav.favorites':'Favoritter',
+'nav.archive':'Arkiv',
+'nav.manual':'Manual',
+'nav.newHub':'Ny hub',
+'nav.hubsHeading':'Hubs',
+'nav.noHubsYet':'Ingen hubs endnu',
+'nav.editHub':'Redigér',
+'sidefoot.helperOn':'Hjælper kører',
+'sidefoot.helperOff':'Hjælper svarer ikke',
+'sidefoot.themeLight':'Lyst tema',
+'sidefoot.themeDark':'Mørkt tema',
+'sidefoot.backup':'Backup',
+'sidefoot.lang':'English',
+'top.quickSearch':'Hurtigsøg ',
+'top.checkFiles':'Tjek filer',
+'top.checkFilesTitle':'Kontrollér at filerne stadig ligger, hvor du har sagt',
+'top.add':'Tilføj ▾',
+'addmenu.pickFiles':'📄 Vælg filer…',
+'addmenu.addFolders':'📁 Tilføj mapper…',
+'addmenu.addFoldersTitle':'Vælg mapper, der skal åbnes fra dashboardet',
+'addmenu.scanFolders':'📁 Scan mapper…',
+'addmenu.pasteLinks':'📋 Indsæt stier eller links…',
+'addmenu.addManually':'✏️ Tilføj manuelt…',
+'addmenu.newHub':'Ny hub…',
+'home.greetNight':'Godnat',
+'home.greetMorning':'Godmorgen',
+'home.greetForenoon':'God formiddag',
+'home.greetAfternoon':'God eftermiddag',
+'home.greetEvening':'Godaften',
+'home.emptyHeadline':'Klar til dine første filer',
+'home.emptyLede':'Peg på dine filer, så samler jeg dem her – uanset om de ligger lokalt, på et netværksdrev eller i OneDrive.',
+'home.badHeadline':(bad,tot)=>bad+' af '+tot+(tot===1?' fil':' filer')+' kan ikke findes',
+'home.badLede':'De røde felter herunder er filer, hvor stien ikke længere passer. Klik på et rødt felt for at rette stien.',
+'home.netHeadline':'Netværksdrevet svarer ikke',
+'home.netLede':n=>n+' filer gav ikke svar inden for tidsgrænsen. Tjek at du er forbundet til netværket.',
+'home.okHeadline':n=>'Alle '+n+' filer svarer',
+'home.okLede':'Sidst kontrolleret lige nu.',
+'home.countHeadline':n=>n+(n===1?' fil':' filer')+' i dashboardet',
+'home.countLede':'Filstatus kontrolleres i baggrunden.',
+'home.cellTitle':(title,statusText)=>title+' – '+statusText+' (klik for at redigere)',
+'legend.found':'Fundet',
+'legend.missing':'Mangler',
+'legend.noResponse':'Intet svar',
+'legend.onlineLink':'Online-link',
+'legend.notChecked':'Ikke tjekket',
+'legend.hint':'Farven under hvert felt er filens hub',
+'home.hubs':'Hubs',
+'home.newHubTile':'Ny hub',
+'home.tileFiles':(n,missing,desc)=>n+(n===1?' fil':' filer')+(missing?', '+missing+' mangler':'')+(desc?' – '+desc:''),
+'home.deadlines':'Frister',
+'home.needsAttention':'Kræver opmærksomhed',
+'home.fixPath':'Ret sti',
+'home.recentlyOpened':'Senest åbnet',
+'home.mostUsed':'Mest brugte',
+'onboard.title':'Sådan får du dine filer ind',
+'onboard.body':'Vælg filer direkte i Windows, scan en hel mappe, eller indsæt stier og links. Du kan sætte hub og tags på mange filer ad gangen, og dashboardet gemmer kun stien – dine filer flyttes eller kopieres ikke.',
+'onboard.pickFiles':'Vælg filer…',
+'onboard.scanFolders':'Scan mapper…',
+'onboard.pasteLinks':'Indsæt stier eller links…',
+'lib.allFiles':'Alle filer',
+'lib.needsAttention':'Kræver opmærksomhed',
+'lib.archive':'Arkiv',
+'lib.favorites':'Favoritter',
+'lib.hub':'Hub',
+'lib.searchPlaceholder':'Filtrér på navn, sti, tag eller beskrivelse',
+'lib.active':'Aktive',
+'lib.archiveSeg':'Arkiv',
+'lib.allSeg':'Alle',
+'lib.cards':'Kort',
+'lib.list':'Liste',
+'lib.favoritesChip':'★ Favoritter',
+'lib.missingChip':'Mangler',
+'lib.sortTitle':'Sortering',
+'lib.markTitle':'Markér flere filer og redigér dem samlet',
+'lib.mark':'☑ Markér',
+'lib.preview':'👁 Forhåndsvisning',
+'lib.previewTitle':'Vis en rude ved siden af listen med indholdet af den valgte fil. Filer læses kun, når de er valgt.',
+'lib.hubChipsLabel':'Hub',
+'lib.tagsChipsLabel':'Tags',
+'lib.tagManagerTitle':'Giv tags farver, omdøb eller slet dem',
+'lib.tagManager':'🎨 Tags',
+'lib.showFewer':'Vis færre',
+'lib.showMore':n=>'+'+n+' flere',
+'lib.matchAll':'alle valgte',
+'lib.matchAny':'mindst ét valgt',
+'lib.matchLabel':m=>'Match: '+m,
+'lib.clearFilters':'Ryd filtre',
+'lib.resultInfo':(n,tot)=>n+' af '+tot+' filer',
+'lib.noneMatch':'Ingen filer matcher',
+'lib.noneMatchLede':'Prøv at fjerne et tag eller ryd filtrene.',
+'lib.allChip':'Alle',
+'lib.colFile':'Fil',
+'lib.colHub':'Hub',
+'lib.colTags':'Tags',
+'lib.colModified':'Ændret',
+'card.markTitle':'Markér',
+'card.previewTitle':'Vis forhåndsvisning (dobbeltklik for at åbne)',
+'card.openTitle':p=>'Åbn '+p,
+'card.previewBtn':'Vis i forhåndsvisning',
+'card.favAdd':'Tilføj til favoritter',
+'card.favRemove':'Fjern fra favoritter',
+'card.moreOptions':'Flere valg',
+'card.openFolder':'Åbn mappe',
+'card.open':'Åbn',
+'card.modified':d=>'Ændret '+d,
+'card.folder':'Mappe',
+'card.openedN':n=>'åbnet '+n+'×',
+'card.neverOpened':'aldrig åbnet',
+'brand.tagline':'Dine filer, samlet',
+'lang.toggleTitle':'Dansk / English',
+'home.week':n=>'Uge '+n,
+'home.at':', kl. ',
+'home.sortWithinGroup':'Sortering inden for hver gruppe',
+'lib.filtersAndTags':'Filtre og tags',
+'sort.recent':'Senest brugt','sort.name':'Navn A–Å','sort.opens':'Mest brugt','sort.modified':'Sidst ændret (fil)','sort.added':'Senest tilføjet','sort.due':'Frist',
+'noun.files':n=>n+(n===1?' fil':' filer'),
+'common.add':'Tilføj',
+'sel.pickSomeFirst':'Markér først nogle filer',
+'sel.hiddenByFilters':n=>'('+n+' skjult af filtre)',
+'sel.selectAll':n=>'Vælg alle ('+n+')',
+'sel.clear':'Ryd',
+'sel.addTag':'🏷 Tilføj tag…',
+'sel.removeTag':'Fjern tag…',
+'sel.hub':'Hub…',
+'sel.removeFavorite':'Fjern favorit',
+'sel.addFavorite':'★ Favorit',
+'sel.restore':'Gendan',
+'sel.archive':'Arkivér',
+'sel.removeDots':'Fjern…',
+'sel.done':'Færdig',
+'sel.nSelected':n=>n+(n===1?' fil valgt':' filer valgt'),
+'sel.addedToFav':noun=>noun+' tilføjet til favoritter',
+'sel.removedFromFav':noun=>'Favorit fjernet fra '+noun,
+'sel.movedToArchive':noun=>noun+' flyttet til arkiv',
+'sel.restoredFromArchive':noun=>noun+' gendannet fra arkiv',
+'sel.confirmRemove':noun=>'Fjerne '+noun+' fra dashboardet?\nSelve filerne slettes ikke.',
+'sel.removedToast':noun=>noun+' fjernet',
+'fld.tags':'Tags',
+'fld.tagsHint':'Tryk Enter efter hvert tag. Eksisterende tags foreslås.',
+'bulk.andNMore':n=>' og '+n+' til',
+'bulk.addTagTitle':n=>'Tilføj tag til '+t('noun.files',n),
+'bulk.writeAtLeastOneTag':'Skriv mindst ét tag',
+'bulk.addedTagsToast':(ts,n)=>'Tilføjet '+ts+' til '+t('noun.files',n),
+'bulk.noTagsWarn':'De valgte filer har ingen tags',
+'bulk.removeTagTitle':n=>'Fjern tag fra '+t('noun.files',n),
+'bulk.removeTagBody':'Vælg de tags, der skal fjernes fra de valgte filer. Tallet viser, hvor mange af dem der har tagget.',
+'bulk.pickAtLeastOneTag':'Vælg mindst ét tag',
+'bulk.removedTagsToast':ts=>'Fjernede '+ts+' fra de valgte filer',
+'bulk.removeSelectedTags':'Fjern valgte tags',
+'bulk.pickHubPlaceholder':'Vælg hub…',
+'bulk.moveToHubTitle':n=>'Flyt '+t('noun.files',n)+' til hub',
+'fld.hub':'Hub',
+'bulk.pickAHub':'Vælg en hub',
+'bulk.hubChangedToast':n=>'Hub ændret for '+t('noun.files',n),
+'bulk.move':'Flyt',
+'menu.preview':'Forhåndsvis…',
+'menu.openInBrowser':'Åbn i browser',
+'menu.showInFolder':'Vis i mappe',
+'menu.copyPath':'Kopiér sti',
+'menu.restoreFromArchive':'Gendan fra arkiv',
+'menu.moveToArchive':'Flyt til arkiv',
+'menu.removeFromDashboard':'Fjern fra dashboardet',
+'menu.confirmRemoveFile':title=>'Fjerne "'+title+'" fra dashboardet?\nSelve filen slettes ikke.',
+'tag.renamePrompt':old=>'Nyt navn til tagget "'+old+'":',
+'tag.confirmDelete':(name,n)=>'Fjerne tagget "'+name+'" fra '+t('noun.files',n)+'?',
+'tag.fileCount':'Antal filer',
+'tag.noColor':'Ingen farve',
+'tag.renameTitle':'Omdøb (eller slå sammen med et andet tag)',
+'tag.deleteTitle':'Slet tagget fra alle filer',
+'tag.noneYet':'Ingen tags endnu. Tilføj tags til dine filer, så dukker de op her.',
+'tag.managerTitle':'Tags og farver',
+'tag.managerBody':'Vælg en farve til hvert tag. Farven vises på kort, filterknapper og ved redigering. Med ✎ kan du omdøbe et tag, og giver du det samme navn som et andet tag, bliver de slået sammen.',
+'pane.hidePreview':'Skjul forhåndsvisning',
+'pane.title':'Forhåndsvisning',
+'pane.pickFileHint':'Vælg en fil på listen for at se indholdet her. Dobbeltklik åbner filen.',
+'pane.fetchingFile':'Henter filen…',
+'pane.noPreviewForType':'Ingen forhåndsvisning af denne filtype',
+'pane.fileNotFound':'Filen findes ikke',
+'pane.showingFirst200KB':'Viser de første 200 KB.',
+'pane.sheetApproxSize':(r,c)=>'Arket er ca. '+r+' rækker og '+c+' kolonner.',
+'pane.showingFirstRC':(r,c)=>'Viser de første '+r+' rækker og '+c+' kolonner.',
+'pane.noFormattingNote':'Værdier vises uden Excels talformatering, dog med datoer og procenter.',
+'pane.fetchingSheet':'Henter arket…',
+'pane.sheetReadError':m=>'Kunne ikke læse arket: '+m,
+'pane.noPreviewError':m=>'Ingen forhåndsvisning: '+m,
+'pane.sheetEmpty':'Arket er tomt',
+'pane.hiddenSuffix':' (skjult)',
+'xlsx.notValidExcel':'Filen er ikke en gyldig Excel-fil',
+'xlsx.unknownCompression':'Ukendt komprimering i filen',
+'xlsx.needsNewerBrowser':'Forhåndsvisning kræver en nyere udgave af Edge eller Chrome',
+'xlsx.passwordProtected':'Filen er adgangskodebeskyttet eller i et ældre format',
+'xlsx.notAWorkbook':'Filen er ikke en Excel-projektmappe',
+'xlsx.noSheets':'Projektmappen har ingen ark',
+'xlsx.sheetUnreadable':'Arket kunne ikke læses',
+'hub.addDescriptionPrompt':'Tilføj en beskrivelse af hubben via Redigér.',
+'hub.filesWord':n=>n===1?'fil':'filer',
+'hub.favorites':'favoritter',
+'hub.missing':'mangler',
+'hub.lastOpened':d=>'Sidst åbnet '+d,
+'hub.editHub':'Redigér hub',
+'hub.newFileInHub':'Ny fil i hubben',
+'hub.notesPlaceholder':'Noter, huskeliste eller procedure for denne hub',
+'hub.shortcuts':'Genveje',
+'hub.pinHint':'Fastgør filer med ☆, så dukker de op her som knapper.',
+'hub.notes':'Noter',
+'fdlg.titlePlaceholder':'Fx Månedlig indberetning',
+'fdlg.pathPlaceholder':'C:\\Rapporter\\fil.xlsx   \\\\server\\share\\fil.xlsx   https://…',
+'fdlg.dueLabelPlaceholder':'Fx Indberetning til myndighed',
+'fdlg.active':'Aktiv',
+'fdlg.archive':'Arkiv',
+'fdlg.giveAPath':'Angiv en sti eller et link',
+'fdlg.pathExistsConfirm':'Den sti findes allerede i dashboardet. Tilføj alligevel?',
+'fdlg.addFile':'Tilføj fil',
+'fdlg.saveChanges':'Gem ændringer',
+'fdlg.editFile':'Redigér fil',
+'fld.pathOrLink':'Sti eller link',
+'fdlg.pickFile':'Vælg fil…',
+'fdlg.folderInsteadTitle':'Peg på en mappe i stedet for en fil',
+'fdlg.folderBtn':'Mappe…',
+'fdlg.pathHint':'Lokal sti, netværkssti eller et SharePoint/OneDrive-link.',
+'fld.name':'Navn',
+'fld.status':'Status',
+'fld.tagsHint2':'Tryk Enter efter hvert tag. Tags bliver til filterknapper.',
+'fld.description':'Beskrivelse',
+'fld.deadlineOptional':'Frist (valgfri)',
+'fld.whatIsDeadline':'Hvad er fristen?',
+'fdlg.pinAsFavorite':'Fastgør som favorit',
+'imp.noValidPaths':'Ingen gyldige stier',
+'imp.addN':n=>'Tilføj '+t('noun.files',n),
+'imp.alreadyExists':'  findes allerede',
+'imp.addedToast':n=>t('noun.files',n)+' tilføjet',
+'fld.hubForAll':'Hub til alle',
+'fld.tagsForAll':'Tags til alle',
+'imp.filesHeading':'Filer',
+'imp.selectAll':'Vælg alle',
+'imp.deselectAll':'Fravælg alle',
+'browser.addrPlaceholder':'Skriv en sti og tryk Enter, fx \\\\server\\share\\mappe',
+'browser.back':'Tilbage (Alt+←)',
+'browser.upOne':'Én mappe op (Backspace)',
+'browser.thisPC':'💽 Denne pc',
+'browser.upDotDot':'Opad (..)',
+'browser.pickFolderN':n=>'Vælg '+n+(n===1?' mappe':' mapper'),
+'browser.pickThisFolder':'Vælg denne mappe',
+'browser.addFileN':n=>'Tilføj '+n+(n===1?' fil':' filer'),
+'browser.pickFile':'Vælg fil',
+'browser.deselect':'Fjern markering',
+'browser.select':'Markér mappen',
+'browser.noExcelHereOnly':'Ingen Excel- eller CSV-filer her. Gå til en undermappe, eller fjern kryds ved “Vis kun Excel- og CSV-filer”.',
+'browser.noSubfolders':'Ingen undermapper her.',
+'browser.removeShortcut':'Fjern genvej',
+'browser.enterHere':'Gå ind i en mappe først',
+'browser.shortcutNamePrompt':'Navn på genvejen:',
+'browser.shortcutSaved':'★ Gemt som genvej – klik for at fjerne',
+'browser.saveAsShortcut':'＋ Gem denne mappe som genvej',
+'browser.tryWindowsDialog':'Åbn den almindelige Windows-dialog i stedet',
+'browser.tryWindowsDialogBtn':'Prøv Windows-dialog',
+'browser.selectAllInFolder':'Vælg alle i mappen',
+'browser.selectAllSubfolders':'Markér alle undermapper',
+'browser.goBtn':'Gå',
+'browser.folderStepHint':'Klik på en mappe for at gå ind i den. Sæt kryds for at vælge den. Du kan vælge flere mapper og bladre imellem dem. Uden kryds vælges den mappe, du står i.',
+'browser.excelCsvOnly':'Vis kun Excel- og CSV-filer',
+'browser.pickFolder':'Vælg mappe',
+'browser.pickFilesTitle':'Vælg filer',
+'paste.title':'Indsæt stier eller links',
+'paste.placeholder':'C:\\Rapporter\\Maaned.xlsx\n\\\\server\\share\\Budget.xlsx\nhttps://firma.sharepoint.com/…/fil.xlsx',
+'paste.body':'Én sti eller ét link pr. linje. I Stifinder kan du markere flere filer og vælge “Kopiér som sti” (Shift + højreklik), og så indsætte her. Citationstegn fjernes automatisk.',
+'paste.continue':'Fortsæt',
+'scan.folderPlaceholder':'Skriv eller indsæt en mappesti, og tryk Enter',
+'scan.scanBtn':'Scan',
+'scan.noFoldersYet':'Ingen mapper valgt endnu',
+'scan.scanN':n=>'Scan '+n+' mapper',
+'scan.pickFoldersBtn':'Vælg mapper…',
+'scan.pickFoldersTitle':'Vælg mapper, der skal scannes',
+'scan.scanningN':(i,tot)=>'Scanner '+i+' af '+tot+'…',
+'scan.couldNotScan':list=>'Kunne ikke scanne: '+list,
+'scan.noFilesFound':'Ingen filer fundet',
+'scan.tooManyPerFolder':'Højst 500 filer pr. mappe vises',
+'scan.dialogTitle':'Scan mapper',
+'fld.folders':'Mapper',
+'scan.findAllHint':'Find alle filer i de valgte mapper.',
+'scan.includeSubfolders':'Medtag undermapper (kan tage tid på netværksdrev)',
+'cat.namePlaceholder':'Fx Affaldsdata',
+'cat.confirmDelete':name=>'Slette "'+name+'"?\nFilerne beholdes, men mister deres hub.',
+'common.delete':'Slet',
+'cat.moveUp':'Flyt op i listen',
+'cat.moveDown':'Flyt ned i listen',
+'cat.giveItAName':'Giv den et navn',
+'cat.create':'Opret',
+'cat.newHubTitle':'Ny hub',
+'fld.icon':'Ikon',
+'fld.color':'Farve',
+'cat.descHint':'Vises på hub-siden og på oversigten.',
+'settings.notValidBackup':'Filen er ikke en gyldig backup',
+'settings.confirmRestore':n=>'Erstat alt i dashboardet med indholdet af backup-filen ('+n+' filer)?',
+'settings.backupLoaded':'Backup indlæst',
+'settings.dialogTitle':'Backup og indstillinger',
+'settings.body':'Dashboardet gemmer alt i data.json i samme mappe som hjælperen. Ved første ændring hver dag lægges en kopi i mappen backups (de seneste 30 dage beholdes).',
+'settings.getBackup':'Hent backup',
+'settings.loadBackup':'Indlæs backup…',
+'settings.tagsAndColors':'Tags og farver…',
+'settings.confirmResetStats':'Nulstille “senest åbnet” og “mest brugte” for alle filer?',
+'settings.resetStats':'Nulstil brugsstatistik',
+'pal.placeholder':'Skriv for at finde en fil eller hub',
+'pal.hint':'↑↓ vælg    Enter åbn    Shift+Enter vis i mappe    Esc luk',
+'pal.goTo':'Gå til',
+'pal.noMatch':'Ingen match',
+'start.helperUnreachableBanner':'Hjælperen svarer ikke. Start start-dashboard.bat igen – ændringer gemmes, når den kører.',
+'dnd.browsersCantSeePath':'Browsere må ikke se, hvor en fil ligger. Vælg filerne i Windows-dialogen i stedet.',
+'upd.installingTitle':'Opdaterer…',
+'upd.installingBody':'<p>Installeren er startet. Følg dialogen fra Windows, og genåbn File Command Center bagefter.</p>',
+'upd.fetchingPct':(v,pct)=>'Henter opdatering '+v+'… '+pct+'%',
+'upd.willAskPermission':'Windows beder snart om tilladelse til at installere.',
+'upd.newVersionAvailable':v=>'📦 Ny version tilgængelig: '+v,
+'upd.installNow':'Opdater nu',
+'upd.viewChanges':'Se ændringer',
+'upd.later':'Senere',
+'init.startHelperFirstTitle':'Start hjælperen først',
+'init.startHelperFirstBody':'<p>Siden er åbnet direkte fra en fil. Den skal i stedet køre via den lille hjælper.</p><p>Dobbeltklik på <b>start-dashboard.bat</b> i mappen – så åbner dashboardet af sig selv på <b>http://localhost:8787</b>.</p>',
+'init.helperNotRespondingTitle':'Hjælperen svarer ikke',
+'init.helperNotRespondingBody':m=>'<p>Dashboardet kunne ikke få forbindelse til hjælperen ('+m+').</p><p>Dobbeltklik på <b>start-dashboard.bat</b>, og genindlæs siden.</p>',
+'help.sub':'Hjælp',
+'help.printOrSavePdf':'Udskriv eller gem som PDF',
+'manual.toc':'Indhold',
+}, en:{
+'noHub':'No hub',
+'deadline':'Deadline',
+'rel.now':'just now',
+'rel.minAgo':m=>m+' min ago',
+'rel.hAgo':t=>t+'h ago',
+'rel.dayAgo':d=>d+(d===1?' day':' days')+' ago',
+'due.overdue':n=>(-n)+(n===-1?' day':' days')+' overdue',
+'due.today':'today',
+'due.tomorrow':'tomorrow',
+'due.inDays':n=>'in '+n+' days',
+'status.url':'Online link (not checked)',
+'status.unk':'Not checked yet',
+'status.warn':'No response – is the network drive available?',
+'status.ok':'File found',
+'status.bad':'File not found – has it been moved, renamed or deleted?',
+'toast.opening':title=>'Opening '+title+'…',
+'toast.pathCopied':'Path copied',
+'toast.copyFailed':'Could not copy',
+'save.saving':'Saving…',
+'save.saved':'Saved',
+'save.failed':'Could not save',
+'save.failedWithMsg':m=>'Could not save: '+m,
+'check.checking':'Checking…',
+'check.failed':m=>'Could not check files: '+m,
+'check.notFoundN':bad=>bad+(bad===1?' file was not found':' files were not found'),
+'check.allFound':'All files were found',
+'common.cancel':'Cancel',
+'common.close':'Close',
+'common.save':'Save',
+'common.remove':'Remove',
+'common.edit':'Edit…',
+'nav.overview':'Overview',
+'nav.allFiles':'All files',
+'nav.favorites':'Favorites',
+'nav.archive':'Archive',
+'nav.manual':'Manual',
+'nav.newHub':'New hub',
+'nav.hubsHeading':'Hubs',
+'nav.noHubsYet':'No hubs yet',
+'nav.editHub':'Edit',
+'sidefoot.helperOn':'Helper running',
+'sidefoot.helperOff':'Helper not responding',
+'sidefoot.themeLight':'Light theme',
+'sidefoot.themeDark':'Dark theme',
+'sidefoot.backup':'Backup',
+'sidefoot.lang':'Dansk',
+'top.quickSearch':'Quick search ',
+'top.checkFiles':'Check files',
+'top.checkFilesTitle':'Check that the files are still where you said',
+'top.add':'Add ▾',
+'addmenu.pickFiles':'📄 Pick files…',
+'addmenu.addFolders':'📁 Add folders…',
+'addmenu.addFoldersTitle':'Pick folders to open from the dashboard',
+'addmenu.scanFolders':'📁 Scan folders…',
+'addmenu.pasteLinks':'📋 Paste paths or links…',
+'addmenu.addManually':'✏️ Add manually…',
+'addmenu.newHub':'New hub…',
+'home.greetNight':'Good night',
+'home.greetMorning':'Good morning',
+'home.greetForenoon':'Good morning',
+'home.greetAfternoon':'Good afternoon',
+'home.greetEvening':'Good evening',
+'home.emptyHeadline':'Ready for your first files',
+'home.emptyLede':'Point me at your files and I’ll collect them here – whether they’re local, on a network drive, or in OneDrive.',
+'home.badHeadline':(bad,tot)=>bad+' of '+tot+(tot===1?' file':' files')+' cannot be found',
+'home.badLede':'The red fields below are files whose path no longer matches. Click a red field to fix the path.',
+'home.netHeadline':'The network drive is not responding',
+'home.netLede':n=>n+' files did not respond within the time limit. Check that you’re connected to the network.',
+'home.okHeadline':n=>'All '+n+(n===1?' file responds':' files respond'),
+'home.okLede':'Last checked just now.',
+'home.countHeadline':n=>n+(n===1?' file':' files')+' in the dashboard',
+'home.countLede':'File status is being checked in the background.',
+'home.cellTitle':(title,statusText)=>title+' – '+statusText+' (click to edit)',
+'legend.found':'Found',
+'legend.missing':'Missing',
+'legend.noResponse':'No response',
+'legend.onlineLink':'Online link',
+'legend.notChecked':'Not checked',
+'legend.hint':'The color under each field is the file’s hub',
+'home.hubs':'Hubs',
+'home.newHubTile':'New hub',
+'home.tileFiles':(n,missing,desc)=>n+(n===1?' file':' files')+(missing?', '+missing+' missing':'')+(desc?' – '+desc:''),
+'home.deadlines':'Deadlines',
+'home.needsAttention':'Needs attention',
+'home.fixPath':'Fix path',
+'home.recentlyOpened':'Recently opened',
+'home.mostUsed':'Most used',
+'onboard.title':'Here’s how to add your files',
+'onboard.body':'Pick files directly in Windows, scan a whole folder, or paste in paths and links. You can set a hub and tags on many files at once, and the dashboard only stores the path – your files are never moved or copied.',
+'onboard.pickFiles':'Pick files…',
+'onboard.scanFolders':'Scan folders…',
+'onboard.pasteLinks':'Paste paths or links…',
+'lib.allFiles':'All files',
+'lib.needsAttention':'Needs attention',
+'lib.archive':'Archive',
+'lib.favorites':'Favorites',
+'lib.hub':'Hub',
+'lib.searchPlaceholder':'Filter by name, path, tag or description',
+'lib.active':'Active',
+'lib.archiveSeg':'Archive',
+'lib.allSeg':'All',
+'lib.cards':'Cards',
+'lib.list':'List',
+'lib.favoritesChip':'★ Favorites',
+'lib.missingChip':'Missing',
+'lib.sortTitle':'Sort',
+'lib.markTitle':'Select multiple files and edit them together',
+'lib.mark':'☑ Select',
+'lib.preview':'👁 Preview',
+'lib.previewTitle':'Show a pane next to the list with the content of the selected file. Files are only read when selected.',
+'lib.hubChipsLabel':'Hub',
+'lib.tagsChipsLabel':'Tags',
+'lib.tagManagerTitle':'Color, rename or delete tags',
+'lib.tagManager':'🎨 Tags',
+'lib.showFewer':'Show fewer',
+'lib.showMore':n=>'+'+n+' more',
+'lib.matchAll':'all selected',
+'lib.matchAny':'at least one selected',
+'lib.matchLabel':m=>'Match: '+m,
+'lib.clearFilters':'Clear filters',
+'lib.resultInfo':(n,tot)=>n+' of '+tot+' files',
+'lib.noneMatch':'No files match',
+'lib.noneMatchLede':'Try removing a tag or clearing the filters.',
+'lib.allChip':'All',
+'lib.colFile':'File',
+'lib.colHub':'Hub',
+'lib.colTags':'Tags',
+'lib.colModified':'Modified',
+'card.markTitle':'Select',
+'card.previewTitle':'Show preview (double-click to open)',
+'card.openTitle':p=>'Open '+p,
+'card.previewBtn':'Show in preview',
+'card.favAdd':'Add to favorites',
+'card.favRemove':'Remove from favorites',
+'card.moreOptions':'More options',
+'card.openFolder':'Open folder',
+'card.open':'Open',
+'card.modified':d=>'Modified '+d,
+'card.folder':'Folder',
+'card.openedN':n=>'opened '+n+'×',
+'card.neverOpened':'never opened',
+'brand.tagline':'Your files, together',
+'lang.toggleTitle':'Dansk / English',
+'home.week':n=>'Week '+n,
+'home.at':', at ',
+'home.sortWithinGroup':'Sort within each group',
+'lib.filtersAndTags':'Filters and tags',
+'sort.recent':'Recently used','sort.name':'Name A–Z','sort.opens':'Most used','sort.modified':'Last modified (file)','sort.added':'Recently added','sort.due':'Deadline',
+'noun.files':n=>n+(n===1?' file':' files'),
+'common.add':'Add',
+'sel.pickSomeFirst':'Select some files first',
+'sel.hiddenByFilters':n=>'('+n+' hidden by filters)',
+'sel.selectAll':n=>'Select all ('+n+')',
+'sel.clear':'Clear',
+'sel.addTag':'🏷 Add tag…',
+'sel.removeTag':'Remove tag…',
+'sel.hub':'Hub…',
+'sel.removeFavorite':'Remove favorite',
+'sel.addFavorite':'★ Favorite',
+'sel.restore':'Restore',
+'sel.archive':'Archive',
+'sel.removeDots':'Remove…',
+'sel.done':'Done',
+'sel.nSelected':n=>n+(n===1?' file selected':' files selected'),
+'sel.addedToFav':noun=>noun+' added to favorites',
+'sel.removedFromFav':noun=>'Favorite removed from '+noun,
+'sel.movedToArchive':noun=>noun+' moved to archive',
+'sel.restoredFromArchive':noun=>noun+' restored from archive',
+'sel.confirmRemove':noun=>'Remove '+noun+' from the dashboard?\nThe files themselves will not be deleted.',
+'sel.removedToast':noun=>noun+' removed',
+'fld.tags':'Tags',
+'fld.tagsHint':'Press Enter after each tag. Existing tags are suggested.',
+'bulk.andNMore':n=>' and '+n+' more',
+'bulk.addTagTitle':n=>'Add tag to '+t('noun.files',n),
+'bulk.writeAtLeastOneTag':'Enter at least one tag',
+'bulk.addedTagsToast':(ts,n)=>'Added '+ts+' to '+t('noun.files',n),
+'bulk.noTagsWarn':'The selected files have no tags',
+'bulk.removeTagTitle':n=>'Remove tag from '+t('noun.files',n),
+'bulk.removeTagBody':'Select the tags to remove from the selected files. The number shows how many of them have that tag.',
+'bulk.pickAtLeastOneTag':'Select at least one tag',
+'bulk.removedTagsToast':ts=>'Removed '+ts+' from the selected files',
+'bulk.removeSelectedTags':'Remove selected tags',
+'bulk.pickHubPlaceholder':'Pick hub…',
+'bulk.moveToHubTitle':n=>'Move '+t('noun.files',n)+' to hub',
+'fld.hub':'Hub',
+'bulk.pickAHub':'Select a hub',
+'bulk.hubChangedToast':n=>'Hub changed for '+t('noun.files',n),
+'bulk.move':'Move',
+'menu.preview':'Preview…',
+'menu.openInBrowser':'Open in browser',
+'menu.showInFolder':'Show in folder',
+'menu.copyPath':'Copy path',
+'menu.restoreFromArchive':'Restore from archive',
+'menu.moveToArchive':'Move to archive',
+'menu.removeFromDashboard':'Remove from dashboard',
+'menu.confirmRemoveFile':title=>'Remove "'+title+'" from the dashboard?\nThe file itself will not be deleted.',
+'tag.renamePrompt':old=>'New name for the tag "'+old+'":',
+'tag.confirmDelete':(name,n)=>'Remove the tag "'+name+'" from '+t('noun.files',n)+'?',
+'tag.fileCount':'Number of files',
+'tag.noColor':'No color',
+'tag.renameTitle':'Rename (or merge with another tag)',
+'tag.deleteTitle':'Delete the tag from all files',
+'tag.noneYet':'No tags yet. Add tags to your files and they’ll show up here.',
+'tag.managerTitle':'Tags and colors',
+'tag.managerBody':'Pick a color for each tag. The color shows on cards, filter buttons and when editing. Use ✎ to rename a tag – giving it the same name as another tag merges them.',
+'pane.hidePreview':'Hide preview',
+'pane.title':'Preview',
+'pane.pickFileHint':'Select a file in the list to see its content here. Double-click opens the file.',
+'pane.fetchingFile':'Fetching the file…',
+'pane.noPreviewForType':'No preview for this file type',
+'pane.fileNotFound':'File not found',
+'pane.showingFirst200KB':'Showing the first 200 KB.',
+'pane.sheetApproxSize':(r,c)=>'The sheet is approx. '+r+' rows and '+c+' columns.',
+'pane.showingFirstRC':(r,c)=>'Showing the first '+r+' rows and '+c+' columns.',
+'pane.noFormattingNote':'Values are shown without Excel’s number formatting, except dates and percentages.',
+'pane.fetchingSheet':'Fetching the sheet…',
+'pane.sheetReadError':m=>'Could not read the sheet: '+m,
+'pane.noPreviewError':m=>'No preview: '+m,
+'pane.sheetEmpty':'The sheet is empty',
+'pane.hiddenSuffix':' (hidden)',
+'xlsx.notValidExcel':'The file is not a valid Excel file',
+'xlsx.unknownCompression':'Unknown compression in the file',
+'xlsx.needsNewerBrowser':'Preview requires a newer version of Edge or Chrome',
+'xlsx.passwordProtected':'The file is password-protected or in an older format',
+'xlsx.notAWorkbook':'The file is not an Excel workbook',
+'xlsx.noSheets':'The workbook has no sheets',
+'xlsx.sheetUnreadable':'The sheet could not be read',
+'hub.addDescriptionPrompt':'Add a description for the hub via Edit.',
+'hub.filesWord':n=>n===1?'file':'files',
+'hub.favorites':'favorites',
+'hub.missing':'missing',
+'hub.lastOpened':d=>'Last opened '+d,
+'hub.editHub':'Edit hub',
+'hub.newFileInHub':'New file in hub',
+'hub.notesPlaceholder':'Notes, checklist or procedure for this hub',
+'hub.shortcuts':'Shortcuts',
+'hub.pinHint':'Pin files with ☆ and they’ll show up here as buttons.',
+'hub.notes':'Notes',
+'fdlg.titlePlaceholder':'E.g. Monthly report',
+'fdlg.pathPlaceholder':'C:\\Reports\\file.xlsx   \\\\server\\share\\file.xlsx   https://…',
+'fdlg.dueLabelPlaceholder':'E.g. Report to authority',
+'fdlg.active':'Active',
+'fdlg.archive':'Archive',
+'fdlg.giveAPath':'Enter a path or a link',
+'fdlg.pathExistsConfirm':'That path already exists in the dashboard. Add anyway?',
+'fdlg.addFile':'Add file',
+'fdlg.saveChanges':'Save changes',
+'fdlg.editFile':'Edit file',
+'fld.pathOrLink':'Path or link',
+'fdlg.pickFile':'Pick file…',
+'fdlg.folderInsteadTitle':'Point to a folder instead of a file',
+'fdlg.folderBtn':'Folder…',
+'fdlg.pathHint':'Local path, network path, or a SharePoint/OneDrive link.',
+'fld.name':'Name',
+'fld.status':'Status',
+'fld.tagsHint2':'Press Enter after each tag. Tags become filter buttons.',
+'fld.description':'Description',
+'fld.deadlineOptional':'Deadline (optional)',
+'fld.whatIsDeadline':'What is the deadline?',
+'fdlg.pinAsFavorite':'Pin as favorite',
+'imp.noValidPaths':'No valid paths',
+'imp.addN':n=>'Add '+t('noun.files',n),
+'imp.alreadyExists':'  already exists',
+'imp.addedToast':n=>t('noun.files',n)+' added',
+'fld.hubForAll':'Hub for all',
+'fld.tagsForAll':'Tags for all',
+'imp.filesHeading':'Files',
+'imp.selectAll':'Select all',
+'imp.deselectAll':'Deselect all',
+'browser.addrPlaceholder':'Type a path and press Enter, e.g. \\\\server\\share\\folder',
+'browser.back':'Back (Alt+←)',
+'browser.upOne':'Up one folder (Backspace)',
+'browser.thisPC':'💽 This PC',
+'browser.upDotDot':'Up (..)',
+'browser.pickFolderN':n=>'Pick '+n+(n===1?' folder':' folders'),
+'browser.pickThisFolder':'Pick this folder',
+'browser.addFileN':n=>'Add '+n+(n===1?' file':' files'),
+'browser.pickFile':'Pick file',
+'browser.deselect':'Deselect',
+'browser.select':'Select the folder',
+'browser.noExcelHereOnly':'No Excel or CSV files here. Go to a subfolder, or clear “Show only Excel and CSV files”.',
+'browser.noSubfolders':'No subfolders here.',
+'browser.removeShortcut':'Remove shortcut',
+'browser.enterHere':'Go into a folder first',
+'browser.shortcutNamePrompt':'Name for the shortcut:',
+'browser.shortcutSaved':'★ Saved as shortcut – click to remove',
+'browser.saveAsShortcut':'＋ Save this folder as a shortcut',
+'browser.tryWindowsDialog':'Open the regular Windows dialog instead',
+'browser.tryWindowsDialogBtn':'Try Windows dialog',
+'browser.selectAllInFolder':'Select all in the folder',
+'browser.selectAllSubfolders':'Select all subfolders',
+'browser.goBtn':'Go',
+'browser.folderStepHint':'Click a folder to go into it. Check its box to select it. You can select multiple folders while browsing between them. With no box checked, the folder you’re in is selected.',
+'browser.excelCsvOnly':'Show only Excel and CSV files',
+'browser.pickFolder':'Pick folder',
+'browser.pickFilesTitle':'Pick files',
+'paste.title':'Paste paths or links',
+'paste.placeholder':'C:\\Reports\\Month.xlsx\n\\\\server\\share\\Budget.xlsx\nhttps://company.sharepoint.com/…/file.xlsx',
+'paste.body':'One path or link per line. In File Explorer you can select multiple files and choose “Copy as path” (Shift + right-click), then paste here. Quotation marks are removed automatically.',
+'paste.continue':'Continue',
+'scan.folderPlaceholder':'Type or paste a folder path, and press Enter',
+'scan.scanBtn':'Scan',
+'scan.noFoldersYet':'No folders selected yet',
+'scan.scanN':n=>'Scan '+n+' folders',
+'scan.pickFoldersBtn':'Pick folders…',
+'scan.pickFoldersTitle':'Pick folders to scan',
+'scan.scanningN':(i,tot)=>'Scanning '+i+' of '+tot+'…',
+'scan.couldNotScan':list=>'Could not scan: '+list,
+'scan.noFilesFound':'No files found',
+'scan.tooManyPerFolder':'At most 500 files per folder are shown',
+'scan.dialogTitle':'Scan folders',
+'fld.folders':'Folders',
+'scan.findAllHint':'Find all files in the selected folders.',
+'scan.includeSubfolders':'Include subfolders (can take time on a network drive)',
+'cat.namePlaceholder':'E.g. Waste data',
+'cat.confirmDelete':name=>'Delete "'+name+'"?\nThe files will be kept, but will lose their hub.',
+'common.delete':'Delete',
+'cat.moveUp':'Move up in the list',
+'cat.moveDown':'Move down in the list',
+'cat.giveItAName':'Give it a name',
+'cat.create':'Create',
+'cat.newHubTitle':'New hub',
+'fld.icon':'Icon',
+'fld.color':'Color',
+'cat.descHint':'Shown on the hub page and on the overview.',
+'settings.notValidBackup':'The file is not a valid backup',
+'settings.confirmRestore':n=>'Replace everything in the dashboard with the content of the backup file ('+n+' files)?',
+'settings.backupLoaded':'Backup loaded',
+'settings.dialogTitle':'Backup and settings',
+'settings.body':'The dashboard saves everything in data.json in the same folder as the helper. On the first change each day, a copy is placed in the backups folder (the last 30 days are kept).',
+'settings.getBackup':'Get backup',
+'settings.loadBackup':'Load backup…',
+'settings.tagsAndColors':'Tags and colors…',
+'settings.confirmResetStats':'Reset “recently opened” and “most used” for all files?',
+'settings.resetStats':'Reset usage statistics',
+'pal.placeholder':'Type to find a file or hub',
+'pal.hint':'↑↓ select    Enter open    Shift+Enter show in folder    Esc close',
+'pal.goTo':'Go to',
+'pal.noMatch':'No match',
+'start.helperUnreachableBanner':'The helper is not responding. Start start-dashboard.bat again – changes will be saved once it’s running.',
+'dnd.browsersCantSeePath':'Browsers aren’t allowed to see where a file is on disk. Pick the files in the Windows dialog instead.',
+'upd.installingTitle':'Updating…',
+'upd.installingBody':'<p>The installer has started. Follow the dialog from Windows, then reopen File Command Center afterwards.</p>',
+'upd.fetchingPct':(v,pct)=>'Fetching update '+v+'… '+pct+'%',
+'upd.willAskPermission':'Windows will ask for permission to install shortly.',
+'upd.newVersionAvailable':v=>'📦 New version available: '+v,
+'upd.installNow':'Install now',
+'upd.viewChanges':'View changes',
+'upd.later':'Later',
+'init.startHelperFirstTitle':'Start the helper first',
+'init.startHelperFirstBody':'<p>The page was opened directly from a file. It needs to run via the small helper instead.</p><p>Double-click <b>start-dashboard.bat</b> in the folder – the dashboard will then open on its own at <b>http://localhost:8787</b>.</p>',
+'init.helperNotRespondingTitle':'The helper is not responding',
+'init.helperNotRespondingBody':m=>'<p>The dashboard could not connect to the helper ('+m+').</p><p>Double-click <b>start-dashboard.bat</b>, and reload the page.</p>',
+'help.sub':'Help',
+'help.printOrSavePdf':'Print or save as PDF',
+'manual.toc':'Contents',
+}}
 
 /* ================= State ================= */
 let S=null;                 // gemmes i data.json via hjælperen
@@ -349,9 +1074,9 @@ function defaultState(){return{version:1,categories:[
   {id:'oekonomi',name:'Økonomi',icon:'💰',color:'#ffb02e',hub:true,description:'',notes:''},
   {id:'stamdata',name:'Stamdata',icon:'🗂️',color:'#7cc4ff',hub:true,description:'',notes:''},
   {id:'diverse',name:'Diverse',icon:'📎',color:'#b7a4ff',hub:true,description:'',notes:''}],
-  files:[],settings:{theme:'dark',view:'cards',sort:'recent',paneWidth:420}}}
+  files:[],settings:{theme:'dark',view:'cards',sort:'recent',paneWidth:420,lang:'da'}}}
 function migrate(s){s.categories=Array.isArray(s.categories)?s.categories:[];s.categories.forEach(k=>{k.hub=true});s.files=Array.isArray(s.files)?s.files:[];
-  s.settings=Object.assign({theme:'dark',view:'cards',sort:'recent',paneWidth:420},s.settings||{});
+  s.settings=Object.assign({theme:'dark',view:'cards',sort:'recent',paneWidth:420,lang:'da'},s.settings||{});
   const ids=new Set();
   s.files.forEach(f=>{f.tags=f.tags||[];f.status=f.status||'aktiv';f.opens=f.opens||0;f.category=f.category||'';if(!f.id||ids.has(f.id)) f.id=uid();ids.add(f.id)});return s}
 
@@ -374,16 +1099,16 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const isUrl=p=>/^https?:\/\//i.test(p||'');
 const cleanPath=p=>(p||'').trim().replace(/^["'“”‘’]+|["'“”‘’]+$/g,'').trim();
 const cat=id=>S.categories.find(c=>c.id===id);
-const catOf=f=>cat(f.category)||{id:'',name:'Uden hub',icon:'•',color:'var(--dim)'};
+const catOf=f=>cat(f.category)||{id:'',name:t('noHub'),icon:'•',color:'var(--dim)'};
 function titleFromPath(p){let s=p;if(isUrl(p)){try{s=decodeURIComponent(new URL(p).pathname.split('/').filter(Boolean).pop()||p)}catch{s=p}}else s=p.replace(/[\\/]+$/,'').split(/[\\/]/).pop();return s.replace(/\.[a-z0-9]{2,5}$/i,'')}
 function midEllipsis(p,max){if(p.length<=max) return p;const a=Math.floor(max*.35),b=max-a-1;return p.slice(0,a)+'…'+p.slice(-b)}
-const fmtDate=iso=>new Date(iso).toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'});
+const fmtDate=iso=>new Date(iso).toLocaleDateString(dateLocale(),{day:'numeric',month:'short',year:'numeric'});
 function fmtSize(n){if(n==null) return '';if(n<1024) return n+' B';if(n<1048576) return (n/1024).toFixed(0)+' KB';return (n/1048576).toFixed(1).replace('.',',')+' MB'}
-function relTime(iso){const m=Math.round((Date.now()-new Date(iso))/6e4);if(m<1) return 'lige nu';if(m<60) return 'for '+m+' min siden';const t=Math.round(m/60);if(t<24) return 'for '+t+' t siden';const d=Math.round(t/24);if(d<30) return 'for '+d+(d===1?' dag':' dage')+' siden';return fmtDate(iso)}
+function relTime(iso){const m=Math.round((Date.now()-new Date(iso))/6e4);if(m<1) return t('rel.now');if(m<60) return t('rel.minAgo',m);const t2=Math.round(m/60);if(t2<24) return t('rel.hAgo',t2);const d=Math.round(t2/24);if(d<30) return t('rel.dayAgo',d);return fmtDate(iso)}
 function daysUntil(due){const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(due+'T00:00:00')-t)/864e5)}
-function dueInfo(f){if(!f.due) return null;const n=daysUntil(f.due);let k='ok',t;
-  if(n<0){k='bad';t=(-n)+(n===-1?' dag':' dage')+' over fristen'}else if(n===0){k='warn';t='i dag'}else if(n===1){k='warn';t='i morgen'}else{k=n<=7?'warn':'ok';t='om '+n+' dage'}
-  return{n,k,t}}
+function dueInfo(f){if(!f.due) return null;const n=daysUntil(f.due);let k='ok',tt;
+  if(n<0){k='bad';tt=t('due.overdue',n)}else if(n===0){k='warn';tt=t('due.today')}else if(n===1){k='warn';tt=t('due.tomorrow')}else{k=n<=7?'warn':'ok';tt=t('due.inDays',n)}
+  return{n,k,t:tt}}
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)}
 function fileType(p){
   const hx=H[p];if(hx&&hx.isDir) return 'folder';
@@ -400,12 +1125,12 @@ function fileType(p){
 }
 function typeBadge(f){const [l,bg,fg]=TYPES[fileType(f.path)]||TYPES.other;return h('span',{class:'ftype',style:{background:bg,color:fg},title:fileType(f.path)},l)}
 function statusOf(f){
-  if(isUrl(f.path)) return{k:'url',t:'Online-link (kontrolleres ikke)'};
+  if(isUrl(f.path)) return{k:'url',t:t('status.url')};
   const x=H[f.path];
-  if(!x) return{k:'unk',t:'Ikke kontrolleret endnu'};
-  if(x.timeout) return{k:'warn',t:'Intet svar – er netværksdrevet tilgængeligt?'};
-  if(x.exists) return{k:'ok',t:'Filen findes'};
-  return{k:'bad',t:'Filen blev ikke fundet – er den flyttet, omdøbt eller slettet?'};
+  if(!x) return{k:'unk',t:t('status.unk')};
+  if(x.timeout) return{k:'warn',t:t('status.warn')};
+  if(x.exists) return{k:'ok',t:t('status.ok')};
+  return{k:'bad',t:t('status.bad')};
 }
 const allTags=()=>{const s=new Map();S.files.forEach(f=>(f.tags||[]).forEach(t=>{if(!s.has(t.toLowerCase())) s.set(t.toLowerCase(),t)}));return[...s.values()].sort((a,b)=>a.localeCompare(b,'da'))};
 const canonTag=t=>allTags().find(x=>x.toLowerCase()===t.toLowerCase())||t;
@@ -428,10 +1153,10 @@ async function api(path,body){
   return data;
 }
 function setSaveState(m){saveMsg=m;const el=$('#savestate');if(el) el.textContent=m}
-function save(){dirty=true;setSaveState('Gemmer…');clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,400)}
+function save(){dirty=true;setSaveState(t('save.saving'));clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,400)}
 function flushSave(){
   clearTimeout(saveTimer);if(!dirty) return savePromise;dirty=false;
-  savePromise=api('/api/state',S).then(()=>setSaveState('Gemt')).catch(e=>{dirty=true;setSaveState('Kunne ikke gemme');toast('Kunne ikke gemme: '+e.message,'bad')});
+  savePromise=api('/api/state',S).then(()=>setSaveState(t('save.saved'))).catch(e=>{dirty=true;setSaveState(t('save.failed'));toast(t('save.failedWithMsg',e.message),'bad')});
   return savePromise;
 }
 addEventListener('pagehide',()=>{if(dirty&&S&&native) native.postMessage({id:0,path:'/api/state',body:S});else if(dirty&&S) fetch('/api/state',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json','X-Dashboard':'1'},body:JSON.stringify(S)})});
@@ -439,15 +1164,15 @@ addEventListener('pagehide',()=>{if(dirty&&S&&native) native.postMessage({id:0,p
 /* ================= Filstatus ================= */
 async function checkHealth(paths,manual){
   if(!S) return;
-  const btn=$('#chk');if(btn&&manual) btn.textContent='Tjekker…';
+  const btn=$('#chk');if(btn&&manual) btn.textContent=t('check.checking');
   const uniq=[...new Set(paths||S.files.filter(f=>!isUrl(f.path)).map(f=>f.path))];
   let failed=false;
   for(let i=0;i<uniq.length;i+=24){
     try{const r=await api('/api/check',{paths:uniq.slice(i,i+24)});Object.assign(H,r.results)}
-    catch(e){failed=true;if(manual) toast('Kunne ikke tjekke filer: '+e.message,'bad');break}
+    catch(e){failed=true;if(manual) toast(t('check.failed',e.message),'bad');break}
   }
   render();
-  if(manual&&!failed){const bad=S.files.filter(f=>H[f.path]&&H[f.path].exists===false).length;toast(bad?bad+(bad===1?' fil blev ikke fundet':' filer blev ikke fundet'):'Alle filer blev fundet',bad?'bad':'ok')}
+  if(manual&&!failed){const bad=S.files.filter(f=>H[f.path]&&H[f.path].exists===false).length;toast(bad?t('check.notFoundN',bad):t('check.allFound'),bad?'bad':'ok')}
 }
 
 /* ================= Åbn / kopiér ================= */
@@ -456,11 +1181,11 @@ async function openFile(f,reveal=false){
     if(isUrl(f.path)){
       if(reveal||fileType(f.path)!=='excel-url') window.open(f.path,'_blank');
       else h('a',{href:'ms-excel:ofe|u|'+f.path}).click();
-    }else{await flushSave();if(!reveal) toast('Åbner '+f.title+'…');await api('/api/open',{path:f.path,reveal})}
+    }else{await flushSave();if(!reveal) toast(t('toast.opening',f.title));await api('/api/open',{path:f.path,reveal})}
     if(!reveal){f.lastOpened=new Date().toISOString();f.opens=(f.opens||0)+1;save()}
   }catch(e){toast(e.message,'bad')}
 }
-function copyPath(f){navigator.clipboard.writeText(f.path).then(()=>toast('Sti kopieret','ok'),()=>toast('Kunne ikke kopiere','bad'))}
+function copyPath(f){navigator.clipboard.writeText(f.path).then(()=>toast(t('toast.pathCopied'),'ok'),()=>toast(t('toast.copyFailed'),'bad'))}
 function togglePin(f){f.pinned=!f.pinned;save();render()}
 
 /* ================= Toast / menu / dialog ================= */
@@ -541,9 +1266,10 @@ function render(){
   if(!S) return;
   const y=scrollY,ae=document.activeElement,focusQ=ae&&ae.id==='q',pos=focusQ?ae.selectionStart:0;
   document.documentElement.dataset.theme=S.settings.theme;
+  document.documentElement.lang=lang();
   updateTagList();renderSide();
   const r=parseRoute(),main=$('#main');main.replaceChildren();
-  if(!helperOnline) main.append(h('div',{class:'banner'},'Hjælperen svarer ikke. Start start-dashboard.bat igen – ændringer gemmes, når den kører.'));
+  if(!helperOnline) main.append(h('div',{class:'banner'},t('start.helperUnreachableBanner')));
   if(UPDATE) main.append(updateBanner());
   const hubCat=r.parts[0]==='hub'?cat(r.parts[1]):null;
   if(!r.parts.length) main.append(...homeView());
@@ -561,44 +1287,45 @@ function renderSide(){
   const cur=location.hash||'#/';const act=S.files.filter(f=>f.status!=='arkiv');
   const nav=(href,ico,label,n,c,edit)=>h('a',{class:'nav'+((cur===href||(href==='#/'&&cur==='#'))?' on':''),href,style:c?{'--c':c}:{}},
     h('span',{class:'ico'},ico),h('span',{class:'lbl'},label),n!=null?h('span',{class:'n'},n):null,
-    edit?h('span',{class:'edit',title:'Redigér',onClick:e=>{e.preventDefault();e.stopPropagation();catDialog(edit)}},'✎'):null);
+    edit?h('span',{class:'edit',title:t('nav.editHub'),onClick:e=>{e.preventDefault();e.stopPropagation();catDialog(edit)}},'✎'):null);
   const cnt=id=>act.filter(f=>f.category===id).length;
   const hubs=S.categories;
   $('#side').replaceChildren(...[
-    h('div',{class:'brand'},h('div',{class:'logo'},h('i'),h('i'),h('i'),h('i')),h('div',{},h('b',{},'File Command Center'),h('small',{},'Dine filer, samlet'))),
-    nav('#/','🏠','Overblik'),
-    nav('#/all','📚','Alle filer',act.length),
-    nav('#/all?fav=1','⭐','Favoritter',act.filter(f=>f.pinned).length),
-    nav('#/all?status=arkiv','🗄️','Arkiv',S.files.length-act.length),
-    nav('#/help','📖','Manual'),
-    h('div',{class:'sec'},'Hubs',h('button',{title:'Ny hub',onClick:()=>catDialog(null,{hub:true})},'+')),
-    hubs.length?hubs.map(c=>nav('#/hub/'+c.id,c.icon,c.name,cnt(c.id),c.color,c)):h('div',{class:'hint',style:{padding:'4px 10px'}},'Ingen hubs endnu'),
+    h('div',{class:'brand'},h('div',{class:'logo'},h('i'),h('i'),h('i'),h('i')),h('div',{},h('b',{},'File Command Center'),h('small',{},t('brand.tagline')))),
+    nav('#/','🏠',t('nav.overview')),
+    nav('#/all','📚',t('nav.allFiles'),act.length),
+    nav('#/all?fav=1','⭐',t('nav.favorites'),act.filter(f=>f.pinned).length),
+    nav('#/all?status=arkiv','🗄️',t('nav.archive'),S.files.length-act.length),
+    nav('#/help','📖',t('nav.manual')),
+    h('div',{class:'sec'},t('nav.hubsHeading'),h('button',{title:t('nav.newHub'),onClick:()=>catDialog(null,{hub:true})},'+')),
+    hubs.length?hubs.map(c=>nav('#/hub/'+c.id,c.icon,c.name,cnt(c.id),c.color,c)):h('div',{class:'hint',style:{padding:'4px 10px'}},t('nav.noHubsYet')),
     h('div',{class:'grow'}),
     h('div',{class:'sidefoot'},
-      h('div',{class:'r'},h('span',{class:'led '+(helperOnline?'ok':'bad'),id:'hled'}),h('span',{},helperOnline?'Hjælper kører':'Hjælper svarer ikke'),h('span',{class:'spacer',style:{flex:1}}),h('span',{id:'savestate'},saveMsg)),
+      h('div',{class:'r'},h('span',{class:'led '+(helperOnline?'ok':'bad'),id:'hled'}),h('span',{},helperOnline?t('sidefoot.helperOn'):t('sidefoot.helperOff')),h('span',{class:'spacer',style:{flex:1}}),h('span',{id:'savestate'},saveMsg)),
       h('div',{class:'r'},
-        h('button',{class:'btn sm',onClick:()=>{S.settings.theme=S.settings.theme==='dark'?'light':'dark';save();render()}},S.settings.theme==='dark'?'Lyst tema':'Mørkt tema'),
-        h('button',{class:'btn sm',onClick:settingsDialog},'Backup')))].flat(Infinity).filter(Boolean));
+        h('button',{class:'btn sm',onClick:()=>{S.settings.theme=S.settings.theme==='dark'?'light':'dark';save();render()}},S.settings.theme==='dark'?t('sidefoot.themeLight'):t('sidefoot.themeDark')),
+        h('button',{class:'btn sm',title:t('lang.toggleTitle'),onClick:()=>{S.settings.lang=lang()==='da'?'en':'da';save();render()}},t('sidefoot.lang')),
+        h('button',{class:'btn sm',onClick:settingsDialog},t('sidefoot.backup'))))].flat(Infinity).filter(Boolean));
 }
 
 function topbar(title,sub){
   return h('div',{class:'top'},
     h('div',{},sub?h('div',{class:'sub'},sub):null,h('h1',{},title)),
     h('div',{class:'spacer'}),
-    h('button',{class:'btn',onClick:()=>palette()},'Hurtigsøg ',h('kbd',{},'Ctrl K')),
-    h('button',{class:'btn',id:'chk',title:'Kontrollér at filerne stadig ligger, hvor du har sagt',onClick:()=>checkHealth(null,true)},'Tjek filer'),
-    h('button',{class:'btn pri',onClick:e=>addMenu(e.currentTarget)},'Tilføj ▾'));
+    h('button',{class:'btn',onClick:()=>palette()},t('top.quickSearch'),h('kbd',{},'Ctrl K')),
+    h('button',{class:'btn',id:'chk',title:t('top.checkFilesTitle'),onClick:()=>checkHealth(null,true)},t('top.checkFiles')),
+    h('button',{class:'btn pri',onClick:e=>addMenu(e.currentTarget)},t('top.add')));
 }
 function addMenu(anchor){
   const preset={category:UI.cat||''};
   menu(anchor,[
-    {label:'📄 Vælg filer…',fn:()=>pickFlow(preset)},
-    {label:'📁 Tilføj mapper…',fn:()=>browseDialog({mode:'folder',title:'Vælg mapper, der skal åbnes fra dashboardet',onPick:ps=>ps.length===1?fileDialog(null,{...preset,path:ps[0]}):importDialog(ps.map(path=>({path})),preset)})},
-    {label:'📁 Scan mapper…',fn:()=>scanDialog(preset)},
-    {label:'📋 Indsæt stier eller links…',fn:()=>pasteDialog(preset)},
-    {label:'✏️ Tilføj manuelt…',fn:()=>fileDialog(null,preset)},
+    {label:t('addmenu.pickFiles'),fn:()=>pickFlow(preset)},
+    {label:t('addmenu.addFolders'),fn:()=>browseDialog({mode:'folder',title:t('addmenu.addFoldersTitle'),onPick:ps=>ps.length===1?fileDialog(null,{...preset,path:ps[0]}):importDialog(ps.map(path=>({path})),preset)})},
+    {label:t('addmenu.scanFolders'),fn:()=>scanDialog(preset)},
+    {label:t('addmenu.pasteLinks'),fn:()=>pasteDialog(preset)},
+    {label:t('addmenu.addManually'),fn:()=>fileDialog(null,preset)},
     '-',
-    {label:'Ny hub…',fn:()=>catDialog(null,{hub:true})}]);
+    {label:t('addmenu.newHub'),fn:()=>catDialog(null,{hub:true})}]);
 }
 
 /* ---------- Overblik ---------- */
@@ -610,44 +1337,44 @@ function homeView(){
   const now=new Date(),act=S.files.filter(f=>f.status!=='arkiv');
   const bad=act.filter(f=>H[f.path]&&H[f.path].exists===false),tmo=act.filter(f=>H[f.path]&&H[f.path].timeout);
   const checked=act.filter(f=>!isUrl(f.path)&&H[f.path]).length;
-  const hr=now.getHours(),greet=hr<5?'Godnat':hr<10?'Godmorgen':hr<12?'God formiddag':hr<18?'God eftermiddag':'Godaften';
+  const hr=now.getHours(),greet=hr<5?t('home.greetNight'):hr<10?t('home.greetMorning'):hr<12?t('home.greetForenoon'):hr<18?t('home.greetAfternoon'):t('home.greetEvening');
   let headline,lede;
-  if(!S.files.length){headline='Klar til dine første filer';lede='Peg på dine filer, så samler jeg dem her – uanset om de ligger lokalt, på et netværksdrev eller i OneDrive.'}
-  else if(bad.length){headline=bad.length+' af '+act.length+(act.length===1?' fil':' filer')+' kan ikke findes';lede='De røde felter herunder er filer, hvor stien ikke længere passer. Klik på et rødt felt for at rette stien.'}
-  else if(tmo.length){headline='Netværksdrevet svarer ikke';lede=tmo.length+' filer gav ikke svar inden for tidsgrænsen. Tjek at du er forbundet til netværket.'}
-  else if(checked){headline='Alle '+act.length+' filer svarer';lede='Sidst kontrolleret lige nu.'}
-  else{headline=act.length+(act.length===1?' fil':' filer')+' i dashboardet';lede='Filstatus kontrolleres i baggrunden.'}
-  const clock=h('span',{id:'clock'},now.toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'}));
+  if(!S.files.length){headline=t('home.emptyHeadline');lede=t('home.emptyLede')}
+  else if(bad.length){headline=t('home.badHeadline',bad.length,act.length);lede=t('home.badLede')}
+  else if(tmo.length){headline=t('home.netHeadline');lede=t('home.netLede',tmo.length)}
+  else if(checked){headline=t('home.okHeadline',act.length);lede=t('home.okLede')}
+  else{headline=t('home.countHeadline',act.length);lede=t('home.countLede')}
+  const clock=h('span',{id:'clock'},now.toLocaleTimeString(dateLocale(),{hour:'2-digit',minute:'2-digit'}));
   const hero=h('section',{class:'hero'},
-    h('div',{class:'date'},greet+'. Uge '+isoWeek(now)+', '+now.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'})+', kl. ',clock),
+    h('div',{class:'date'},greet+'. '+t('home.week',isoWeek(now))+', '+now.toLocaleDateString(dateLocale(),{weekday:'long',day:'numeric',month:'long'})+t('home.at'),clock),
     h('h1',{},headline),h('p',{class:'lede'},lede),
-    act.length?h('div',{class:'strip'},act.map(f=>{const st=statusOf(f),c=catOf(f);return h('button',{class:'cell '+st.k,style:{'--c':c.color},title:f.title+' – '+st.t+' (klik for at redigere)',onClick:()=>fileDialog(f)})})):null,
-    act.length?h('div',{class:'legend'},h('span',{},h('i',{class:'led ok'}),'Fundet'),h('span',{},h('i',{class:'led bad'}),'Mangler'),h('span',{},h('i',{class:'led warn'}),'Intet svar'),h('span',{},h('i',{class:'led url'}),'Online-link'),h('span',{},h('i',{class:'led'}),'Ikke tjekket'),h('span',{},'Farven under hvert felt er filens hub')):null);
-  const out=[topbar('Overblik'),hero];
+    act.length?h('div',{class:'strip'},act.map(f=>{const st=statusOf(f),c=catOf(f);return h('button',{class:'cell '+st.k,style:{'--c':c.color},title:t('home.cellTitle',f.title,st.t),onClick:()=>fileDialog(f)})})):null,
+    act.length?h('div',{class:'legend'},h('span',{},h('i',{class:'led ok'}),t('legend.found')),h('span',{},h('i',{class:'led bad'}),t('legend.missing')),h('span',{},h('i',{class:'led warn'}),t('legend.noResponse')),h('span',{},h('i',{class:'led url'}),t('legend.onlineLink')),h('span',{},h('i',{class:'led'}),t('legend.notChecked')),h('span',{},t('legend.hint'))):null);
+  const out=[topbar(t('nav.overview')),hero];
   if(!S.files.length) out.push(onboarding());
 
   const tiles=S.categories.map(c=>{
-    const fl=act.filter(f=>f.category===c.id),cnt={};fl.forEach(f=>(f.tags||[]).forEach(t=>cnt[t]=(cnt[t]||0)+1));
+    const fl=act.filter(f=>f.category===c.id),cnt={};fl.forEach(f=>(f.tags||[]).forEach(tg=>cnt[tg]=(cnt[tg]||0)+1));
     const top=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,3),nb=fl.filter(f=>H[f.path]&&H[f.path].exists===false).length;
     return h('a',{class:'tile hub',href:'#/hub/'+c.id,style:{'--c':c.color,textDecoration:'none'}},
       h('div',{class:'ti'},h('span',{class:'em'},c.icon),h('b',{},c.name)),
-      h('p',{},fl.length+(fl.length===1?' fil':' filer')+(nb?', '+nb+' mangler':'')+(c.description?' – '+c.description.slice(0,70):'')),
-      top.length?h('div',{class:'tt'},top.map(t=>{const col=tagColor(t);return h('span',{style:col?{background:'color-mix(in srgb,'+col+' 24%,var(--panel2))'}:null},t)})):null);
+      h('p',{},t('home.tileFiles',fl.length,nb,c.description?c.description.slice(0,70):'')),
+      top.length?h('div',{class:'tt'},top.map(tg=>{const col=tagColor(tg);return h('span',{style:col?{background:'color-mix(in srgb,'+col+' 24%,var(--panel2))'}:null},tg)})):null);
   });
-  tiles.push(h('button',{class:'tile new',onClick:()=>catDialog(null,{hub:true}),style:{'--c':'var(--line2)'}},h('span',{class:'em'},'+'),h('span',{},'Ny hub')));
-  out.push(h('h2',{class:'h2'},'Hubs'),h('div',{class:'tiles'},tiles));
+  tiles.push(h('button',{class:'tile new',onClick:()=>catDialog(null,{hub:true}),style:{'--c':'var(--line2)'}},h('span',{class:'em'},'+'),h('span',{},t('home.newHubTile'))));
+  out.push(h('h2',{class:'h2'},t('home.hubs')),h('div',{class:'tiles'},tiles));
 
   const recent=act.filter(f=>f.lastOpened).sort((a,b)=>b.lastOpened.localeCompare(a.lastOpened)).slice(0,6);
   const most=act.filter(f=>f.opens>0).sort((a,b)=>b.opens-a.opens).slice(0,6);
   const due=act.filter(f=>f.due).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,8);
   const urgent=[];
-  if(due.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},'Frister'),due.map(f=>{const d=dueInfo(f);return miniRow(f,h('span',{class:'x '+d.k},(f.dueLabel?f.dueLabel+': ':'')+d.t))})));
-  if(bad.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},'Kræver opmærksomhed'),bad.slice(0,8).map(f=>miniRow(f,h('button',{class:'btn sm',onClick:e=>{e.stopPropagation();fileDialog(f)}},'Ret sti')))));
+  if(due.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.deadlines')),due.map(f=>{const d=dueInfo(f);return miniRow(f,h('span',{class:'x '+d.k},(f.dueLabel?f.dueLabel+': ':'')+d.t))})));
+  if(bad.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.needsAttention')),bad.slice(0,8).map(f=>miniRow(f,h('button',{class:'btn sm',onClick:e=>{e.stopPropagation();fileDialog(f)}},t('home.fixPath'))))));
   if(urgent.length) out.push(h('div',{class:'cols',style:{marginBottom:'28px'}},urgent));
   out.push(...homeGrid(act));
   const low=[];
-  if(recent.length) low.push(h('section',{class:'panel'},h('h3',{class:'h2'},'Senest åbnet'),recent.map(f=>miniRow(f,h('span',{class:'x'},relTime(f.lastOpened))))));
-  if(most.length) low.push(h('section',{class:'panel'},h('h3',{class:'h2'},'Mest brugte'),most.map(f=>miniRow(f,h('span',{class:'x'},f.opens+'×')))));
+  if(recent.length) low.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.recentlyOpened')),recent.map(f=>miniRow(f,h('span',{class:'x'},relTime(f.lastOpened))))));
+  if(most.length) low.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.mostUsed')),most.map(f=>miniRow(f,h('span',{class:'x'},f.opens+'×')))));
   if(low.length) out.push(h('div',{class:'cols',style:{marginTop:'30px'}},low));
   return out;
 }
@@ -657,76 +1384,76 @@ function homeGrid(act){
   const order=id=>{const i=S.categories.findIndex(c=>c.id===id);return i<0?999:i};
   const pool=act.filter(f=>!UI.cat||f.category===UI.cat);
   const list=[...sortFiles(pool)].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||order(a.category)-order(b.category));
-  const chips=[h('button',{class:'chip'+(!UI.cat?' on':''),onClick:()=>{UI.cat='';render()}},'Alle',h('span',{class:'ct'},act.length))];
+  const chips=[h('button',{class:'chip'+(!UI.cat?' on':''),onClick:()=>{UI.cat='';render()}},t('lib.allChip'),h('span',{class:'ct'},act.length))];
   S.categories.forEach(c=>{const n=act.filter(f=>f.category===c.id).length;if(!n) return;
     chips.push(h('button',{class:'chip'+(UI.cat===c.id?' on':''),style:{'--c':c.color},onClick:()=>{UI.cat=UI.cat===c.id?'':c.id;render()}},h('i',{class:'dot'}),c.icon+' '+c.name,h('span',{class:'ct'},n)))});
-  const sort=h('select',{title:'Sortering inden for hver gruppe',onChange:e=>{S.settings.sort=e.target.value;save();render()}},Object.entries(SORTS).map(([k,l])=>h('option',{value:k,selected:S.settings.sort===k},l)));
+  const sort=h('select',{title:t('home.sortWithinGroup'),onChange:e=>{S.settings.sort=e.target.value;save();render()}},SORT_KEYS.map(k=>h('option',{value:k,selected:S.settings.sort===k},t('sort.'+k))));
   return[
-    h('div',{class:'gridhead'},h('h2',{class:'h2',style:{margin:0}},'Alle filer',h('span',{class:'ct'},list.length)),h('span',{class:'spacer'}),previewToggle(),sort,h('a',{class:'btn sm',href:'#/all'},'Filtre og tags')),
+    h('div',{class:'gridhead'},h('h2',{class:'h2',style:{margin:0}},t('nav.allFiles'),h('span',{class:'ct'},list.length)),h('span',{class:'spacer'}),previewToggle(),sort,h('a',{class:'btn sm',href:'#/all'},t('lib.filtersAndTags'))),
     h('div',{class:'chips'},chips),
     h('div',{class:'grid'},list.map(fileCard))
   ];
 }
 function onboarding(){
-  return h('section',{class:'onboard'},h('h2',{},'Sådan får du dine filer ind'),
-    h('p',{},'Vælg filer direkte i Windows, scan en hel mappe, eller indsæt stier og links. Du kan sætte hub og tags på mange filer ad gangen, og dashboardet gemmer kun stien – dine filer flyttes eller kopieres ikke.'),
+  return h('section',{class:'onboard'},h('h2',{},t('onboard.title')),
+    h('p',{},t('onboard.body')),
     h('div',{class:'acts'},
-      h('button',{class:'btn pri',onClick:()=>pickFlow({})},'Vælg filer…'),
-      h('button',{class:'btn',onClick:()=>scanDialog({})},'Scan mapper…'),
-      h('button',{class:'btn',onClick:()=>pasteDialog({})},'Indsæt stier eller links…')));
+      h('button',{class:'btn pri',onClick:()=>pickFlow({})},t('onboard.pickFiles')),
+      h('button',{class:'btn',onClick:()=>scanDialog({})},t('onboard.scanFolders')),
+      h('button',{class:'btn',onClick:()=>pasteDialog({})},t('onboard.pasteLinks'))));
 }
 
 /* ---------- Bibliotek ---------- */
 function libraryView(r){
   const c=r.parts[0]==='cat'?cat(r.parts[1]):null;
-  let title='Alle filer';
-  if(UI.problem) title='Kræver opmærksomhed';else if(UI.status==='arkiv'&&!UI.cat) title='Arkiv';else if(UI.fav) title='Favoritter';
+  let title=t('lib.allFiles');
+  if(UI.problem) title=t('lib.needsAttention');else if(UI.status==='arkiv'&&!UI.cat) title=t('lib.archive');else if(UI.fav) title=t('lib.favorites');
   if(c) title=c.icon+' '+c.name;
-  return[topbar(title,c?'Hub':null),...libraryBlock({})];
+  return[topbar(title,c?t('lib.hub'):null),...libraryBlock({})];
 }
 function libraryBlock(opt){
   const out=[],facet=S.files.filter(f=>matches(f,{skipTags:true})),list=sortFiles(S.files.filter(f=>matches(f)));
   UI.order=list.map(f=>f.id);
   const anyBad=S.files.some(f=>H[f.path]&&H[f.path].exists===false);
-  const q=h('input',{id:'q',class:'search',placeholder:'Filtrér på navn, sti, tag eller beskrivelse',value:UI.q,onInput:e=>{UI.q=e.target.value;render()}});
-  const seg=h('div',{class:'seg'},[['aktiv','Aktive'],['arkiv','Arkiv'],['alle','Alle']].map(([k,l])=>h('button',{class:UI.status===k?'on':'',onClick:()=>{UI.status=k;render()}},l)));
-  const sort=h('select',{title:'Sortering',onChange:e=>{S.settings.sort=e.target.value;save();render()}},Object.entries(SORTS).map(([k,l])=>h('option',{value:k,selected:S.settings.sort===k},l)));
-  const view=h('div',{class:'seg'},[['cards','Kort'],['list','Liste']].map(([k,l])=>h('button',{class:S.settings.view===k?'on':'',onClick:()=>{S.settings.view=k;save();render()}},l)));
-  out.push(h('div',{class:'toolbar'},q,seg,h('button',{class:'chip'+(UI.fav?' on':''),onClick:()=>{UI.fav=!UI.fav;render()}},'★ Favoritter'),anyBad?h('button',{class:'chip'+(UI.problem?' on':''),onClick:()=>{UI.problem=!UI.problem;render()}},'Mangler'):null,sort,view,h('button',{class:'chip'+(UI.select?' on':''),title:'Markér flere filer og redigér dem samlet',onClick:()=>{UI.select=!UI.select;UI.sel.clear();UI.last=null;render()}},'☑ Markér'),previewToggle()));
+  const q=h('input',{id:'q',class:'search',placeholder:t('lib.searchPlaceholder'),value:UI.q,onInput:e=>{UI.q=e.target.value;render()}});
+  const seg=h('div',{class:'seg'},[['aktiv',t('lib.active')],['arkiv',t('lib.archiveSeg')],['alle',t('lib.allSeg')]].map(([k,l])=>h('button',{class:UI.status===k?'on':'',onClick:()=>{UI.status=k;render()}},l)));
+  const sort=h('select',{title:t('lib.sortTitle'),onChange:e=>{S.settings.sort=e.target.value;save();render()}},SORT_KEYS.map(k=>h('option',{value:k,selected:S.settings.sort===k},t('sort.'+k))));
+  const view=h('div',{class:'seg'},[['cards',t('lib.cards')],['list',t('lib.list')]].map(([k,l])=>h('button',{class:S.settings.view===k?'on':'',onClick:()=>{S.settings.view=k;save();render()}},l)));
+  out.push(h('div',{class:'toolbar'},q,seg,h('button',{class:'chip'+(UI.fav?' on':''),onClick:()=>{UI.fav=!UI.fav;render()}},t('lib.favoritesChip')),anyBad?h('button',{class:'chip'+(UI.problem?' on':''),onClick:()=>{UI.problem=!UI.problem;render()}},t('lib.missingChip')):null,sort,view,h('button',{class:'chip'+(UI.select?' on':''),title:t('lib.markTitle'),onClick:()=>{UI.select=!UI.select;UI.sel.clear();UI.last=null;render()}},t('lib.mark')),previewToggle()));
 
   const catBase=S.files.filter(f=>matches(f,{skipCat:true}));
-  const cchips=[h('button',{class:'chip'+(!UI.cat?' on':''),onClick:()=>{UI.cat='';render()}},'Alle',h('span',{class:'ct'},catBase.length))];
+  const cchips=[h('button',{class:'chip'+(!UI.cat?' on':''),onClick:()=>{UI.cat='';render()}},t('lib.allChip'),h('span',{class:'ct'},catBase.length))];
   S.categories.forEach(c=>cchips.push(h('button',{class:'chip'+(UI.cat===c.id?' on':''),style:{'--c':c.color},onClick:()=>{UI.cat=c.id;render()}},h('i',{class:'dot'}),c.icon+' '+c.name,h('span',{class:'ct'},catBase.filter(f=>f.category===c.id).length))));
-  if(!opt.lock) out.push(h('div',{class:'chips'},h('span',{class:'lab'},'Hub'),cchips));
+  if(!opt.lock) out.push(h('div',{class:'chips'},h('span',{class:'lab'},t('lib.hubChipsLabel')),cchips));
 
-  const counts={};facet.forEach(f=>(f.tags||[]).forEach(t=>counts[t]=(counts[t]||0)+1));
-  UI.tags.forEach(t=>{if(!(t in counts)) counts[t]=0});
+  const counts={};facet.forEach(f=>(f.tags||[]).forEach(tg=>counts[tg]=(counts[tg]||0)+1));
+  UI.tags.forEach(tg=>{if(!(tg in counts)) counts[tg]=0});
   const tags=Object.keys(counts).sort((a,b)=>(UI.tags.has(b)-UI.tags.has(a))||(counts[b]-counts[a])||a.localeCompare(b,'da'));
   const LIM=18,shown=UI.allTags?tags:tags.slice(0,LIM);
   const active=UI.q||UI.tags.size||UI.fav||UI.problem||(UI.cat&&!opt.lock)||UI.status!=='aktiv';
   if(tags.length||active){
-    out.push(h('div',{class:'chips'},h('span',{class:'lab'},'Tags'),
-      shown.map(t=>{const col=tagColor(t);return h('button',{class:'chip'+(UI.tags.has(t)?' on':'')+(col?' tc':''),style:col?{'--tc':col}:null,onClick:()=>toggleTag(t)},col?h('i',{class:'dot',style:{'--c':col}}):null,t,h('span',{class:'ct'},counts[t]))}),
-      h('button',{class:'chip ghost',title:'Giv tags farver, omdøb eller slet dem',onClick:tagManager},'🎨 Tags'),
-      tags.length>LIM?h('button',{class:'chip ghost',onClick:()=>{UI.allTags=!UI.allTags;render()}},UI.allTags?'Vis færre':'+'+(tags.length-LIM)+' flere'):null,
-      UI.tags.size>1?h('button',{class:'chip ghost',onClick:()=>{UI.tagMode=UI.tagMode==='and'?'or':'and';render()}},'Match: '+(UI.tagMode==='and'?'alle valgte':'mindst ét valgt')):null,
-      active?h('button',{class:'chip ghost',onClick:()=>{Object.assign(UI,{q:'',tags:new Set(),tagMode:'and',status:'aktiv',fav:false,problem:false,cat:opt.lock?UI.cat:''});render()}},'Ryd filtre'):null));
+    out.push(h('div',{class:'chips'},h('span',{class:'lab'},t('lib.tagsChipsLabel')),
+      shown.map(tg=>{const col=tagColor(tg);return h('button',{class:'chip'+(UI.tags.has(tg)?' on':'')+(col?' tc':''),style:col?{'--tc':col}:null,onClick:()=>toggleTag(tg)},col?h('i',{class:'dot',style:{'--c':col}}):null,tg,h('span',{class:'ct'},counts[tg]))}),
+      h('button',{class:'chip ghost',title:t('lib.tagManagerTitle'),onClick:tagManager},t('lib.tagManager')),
+      tags.length>LIM?h('button',{class:'chip ghost',onClick:()=>{UI.allTags=!UI.allTags;render()}},UI.allTags?t('lib.showFewer'):t('lib.showMore',tags.length-LIM)):null,
+      UI.tags.size>1?h('button',{class:'chip ghost',onClick:()=>{UI.tagMode=UI.tagMode==='and'?'or':'and';render()}},t('lib.matchLabel',UI.tagMode==='and'?t('lib.matchAll'):t('lib.matchAny'))):null,
+      active?h('button',{class:'chip ghost',onClick:()=>{Object.assign(UI,{q:'',tags:new Set(),tagMode:'and',status:'aktiv',fav:false,problem:false,cat:opt.lock?UI.cat:''});render()}},t('lib.clearFilters')):null));
   }
-  out.push(h('div',{class:'resinfo mono'},list.length+' af '+S.files.length+' filer'));
+  out.push(h('div',{class:'resinfo mono'},t('lib.resultInfo',list.length,S.files.length)));
   if(!list.length){
-    out.push(S.files.length?h('div',{class:'onboard'},h('h2',{},'Ingen filer matcher'),h('p',{},'Prøv at fjerne et tag eller ryd filtrene.'),h('button',{class:'btn',onClick:()=>{Object.assign(UI,{q:'',tags:new Set(),status:'aktiv',fav:false,problem:false,cat:opt.lock?UI.cat:''});render()}},'Ryd filtre')):onboarding());
+    out.push(S.files.length?h('div',{class:'onboard'},h('h2',{},t('lib.noneMatch')),h('p',{},t('lib.noneMatchLede')),h('button',{class:'btn',onClick:()=>{Object.assign(UI,{q:'',tags:new Set(),status:'aktiv',fav:false,problem:false,cat:opt.lock?UI.cat:''});render()}},t('lib.clearFilters'))):onboarding());
   }else if(S.settings.view==='list'){
-    out.push(h('div',{class:'rows'+(UI.select?' selmode':'')},h('div',{class:'rowh'},UI.select?h('span'):null,h('span'),h('span',{},'Fil'),h('span',{},'Hub'),h('span',{},'Tags'),h('span',{},'Ændret'),h('span'),h('span')),list.map(fileRow)));
+    out.push(h('div',{class:'rows'+(UI.select?' selmode':'')},h('div',{class:'rowh'},UI.select?h('span'):null,h('span'),h('span',{},t('lib.colFile')),h('span',{},t('lib.colHub')),h('span',{},t('lib.colTags')),h('span',{},t('lib.colModified')),h('span'),h('span')),list.map(fileRow)));
   }else out.push(h('div',{class:'grid'},list.map(fileCard)));
   if(UI.select) out.push(selBar());
   return out;
 }
 function metaText(f){
   const x=H[f.path],p=[];
-  if(x&&x.modified) p.push('Ændret '+fmtDate(x.modified));
+  if(x&&x.modified) p.push(t('card.modified',fmtDate(x.modified)));
   if(x&&x.size!=null) p.push(fmtSize(x.size));
-  if(fileType(f.path)==='folder') p.unshift('Mappe');
-  p.push(f.opens?'åbnet '+f.opens+'×':'aldrig åbnet');
+  if(fileType(f.path)==='folder') p.unshift(t('card.folder'));
+  p.push(f.opens?t('card.openedN',f.opens):t('card.neverOpened'));
   return p.join(', ');
 }
 function fileCard(f){
@@ -735,15 +1462,15 @@ function fileCard(f){
   return h('article',{class:'card'+(f.status==='arkiv'?' arch':'')+(sm?' selmode':'')+(on?' picked':'')+(pv&&UI.pv===f.id?' pvsel':''),'data-id':f.id,style:{'--c':c.color},onClick:sm?(e=>pickFile(f,e)):pv?(e=>selectFile(f,e)):null,onDblClick:pv?(()=>openFile(f)):null},
     h('div',{class:'card-top'},
       sm?h('span',{class:'pickbox'},on?'☑':'☐'):null,
-      h('div',{class:'card-main',title:sm?'Markér':pv?'Vis forhåndsvisning (dobbeltklik for at åbne)':'Åbn '+f.path,onClick:sm||pv?null:(()=>openFile(f))},typeBadge(f),h('div',{class:'ttl'},h('b',{},f.title),h('span',{class:'catpill'},c.icon+' '+c.name))),
-      sm||!canPreview(f)?null:h('button',{class:'ib',title:'Vis i forhåndsvisning',onClick:()=>showInPane(f)},'👁'),
-      sm?null:h('button',{class:'ib'+(f.pinned?' on':''),title:f.pinned?'Fjern fra favoritter':'Tilføj til favoritter',onClick:()=>togglePin(f)},f.pinned?'★':'☆'),
-      sm?null:h('button',{class:'ib',title:'Flere valg',onClick:e=>fileMenu(e.currentTarget,f)},'⋯')),
+      h('div',{class:'card-main',title:sm?t('card.markTitle'):pv?t('card.previewTitle'):t('card.openTitle',f.path),onClick:sm||pv?null:(()=>openFile(f))},typeBadge(f),h('div',{class:'ttl'},h('b',{},f.title),h('span',{class:'catpill'},c.icon+' '+c.name))),
+      sm||!canPreview(f)?null:h('button',{class:'ib',title:t('card.previewBtn'),onClick:()=>showInPane(f)},'👁'),
+      sm?null:h('button',{class:'ib'+(f.pinned?' on':''),title:f.pinned?t('card.favRemove'):t('card.favAdd'),onClick:()=>togglePin(f)},f.pinned?'★':'☆'),
+      sm?null:h('button',{class:'ib',title:t('card.moreOptions'),onClick:e=>fileMenu(e.currentTarget,f)},'⋯')),
     h('div',{class:'path mono',title:f.path},midEllipsis(f.path,70)),
     f.desc?h('p',{class:'desc'},f.desc):null,
-    di?h('div',{class:'due '+di.k},'⏰ '+(f.dueLabel||'Frist')+' '+fmtDate(f.due)+', '+di.t):null,
+    di?h('div',{class:'due '+di.k},'⏰ '+(f.dueLabel||t('deadline'))+' '+fmtDate(f.due)+', '+di.t):null,
     f.tags&&f.tags.length?h('div',{class:'tags'},f.tags.map(tagChip)):null,
-    h('div',{class:'foot'},h('span',{class:'led '+st.k,title:st.t}),h('span',{class:'meta'},metaText(f)),sm?null:h('button',{class:'btn sm pri',onClick:()=>openFile(f)},fileType(f.path)==='folder'?'Åbn mappe':'Åbn')));
+    h('div',{class:'foot'},h('span',{class:'led '+st.k,title:st.t}),h('span',{class:'meta'},metaText(f)),sm?null:h('button',{class:'btn sm pri',onClick:()=>openFile(f)},fileType(f.path)==='folder'?t('card.openFolder'):t('card.open'))));
 }
 function fileRow(f){
   const c=catOf(f),st=statusOf(f),x=H[f.path],sm=UI.select,on=sm&&UI.sel.has(f.id);
@@ -751,7 +1478,7 @@ function fileRow(f){
   return h('div',{class:'row'+(f.status==='arkiv'?' arch':'')+(sm?' selmode':'')+(on?' picked':'')+(pv&&UI.pv===f.id?' pvsel':''),'data-id':f.id,style:{'--c':c.color},onClick:sm?(e=>pickFile(f,e)):pv?(e=>selectFile(f,e)):null,onDblClick:pv?(()=>openFile(f)):null},
     sm?h('span',{class:'pickbox'},on?'☑':'☐'):null,
     typeBadge(f),
-    h('div',{class:'row-t',title:sm?'Markér':pv?'Vis forhåndsvisning (dobbeltklik for at åbne)':'Åbn '+f.path,onClick:sm||pv?null:(()=>openFile(f))},h('b',{},f.title),h('small',{class:'mono'},midEllipsis(f.path,80))),
+    h('div',{class:'row-t',title:sm?t('card.markTitle'):pv?t('card.previewTitle'):t('card.openTitle',f.path),onClick:sm||pv?null:(()=>openFile(f))},h('b',{},f.title),h('small',{class:'mono'},midEllipsis(f.path,80))),
     h('span',{class:'catpill'},c.icon+' '+c.name),
     h('div',{class:'tags'},(f.tags||[]).slice(0,4).map(tagChip)),
     h('span',{class:'muted sm'},x&&x.modified?fmtDate(x.modified):'–'),
@@ -773,59 +1500,59 @@ function selBar(){
   const files=S.files.filter(f=>UI.sel.has(f.id)),n=files.length,order=UI.order||[];
   const hidden=files.filter(f=>!order.includes(f.id)).length;
   const allPinned=n>0&&files.every(f=>f.pinned),allArch=n>0&&files.every(f=>f.status==='arkiv');
-  const act=fn=>()=>{if(!n){toast('Markér først nogle filer','warn');return}fn(files)};
-  const noun=k=>k+(k===1?' fil':' filer');
+  const act=fn=>()=>{if(!n){toast(t('sel.pickSomeFirst'),'warn');return}fn(files)};
+  const noun=k=>t('noun.files',k);
   return h('div',{class:'selbar'},
-    h('b',{},n+(n===1?' fil valgt':' filer valgt')),
-    hidden?h('span',{class:'muted sm'},'('+hidden+' skjult af filtre)'):null,
-    h('button',{class:'btn sm',onClick:()=>{order.forEach(id=>UI.sel.add(id));render()}},'Vælg alle ('+order.length+')'),
-    h('button',{class:'btn sm',disabled:!n,onClick:()=>{UI.sel.clear();UI.last=null;render()}},'Ryd'),
+    h('b',{},t('sel.nSelected',n)),
+    hidden?h('span',{class:'muted sm'},t('sel.hiddenByFilters',hidden)):null,
+    h('button',{class:'btn sm',onClick:()=>{order.forEach(id=>UI.sel.add(id));render()}},t('sel.selectAll',order.length)),
+    h('button',{class:'btn sm',disabled:!n,onClick:()=>{UI.sel.clear();UI.last=null;render()}},t('sel.clear')),
     h('span',{class:'sep'}),
-    h('button',{class:'btn sm pri',disabled:!n,onClick:act(bulkAddTags)},'🏷 Tilføj tag…'),
-    h('button',{class:'btn sm',disabled:!n,onClick:act(bulkRemoveTags)},'Fjern tag…'),
-    h('button',{class:'btn sm',disabled:!n,onClick:act(bulkCategory)},'Hub…'),
-    h('button',{class:'btn sm',disabled:!n,onClick:act(fs=>{const to=!fs.every(f=>f.pinned);fs.forEach(f=>f.pinned=to);save();render();toast(to?noun(fs.length)+' tilføjet til favoritter':'Favorit fjernet fra '+noun(fs.length),'ok')})},allPinned?'Fjern favorit':'★ Favorit'),
-    h('button',{class:'btn sm',disabled:!n,onClick:act(fs=>{const to=fs.every(f=>f.status==='arkiv')?'aktiv':'arkiv';fs.forEach(f=>f.status=to);UI.sel.clear();save();render();toast(noun(fs.length)+(to==='arkiv'?' flyttet til arkiv':' gendannet fra arkiv'),'ok')})},allArch?'Gendan':'Arkivér'),
-    h('button',{class:'btn sm danger',disabled:!n,onClick:act(fs=>{if(confirm('Fjerne '+noun(fs.length)+' fra dashboardet?\nSelve filerne slettes ikke.')){const ids=new Set(fs.map(f=>f.id));S.files=S.files.filter(f=>!ids.has(f.id));UI.sel.clear();save();render();toast(noun(fs.length)+' fjernet','ok')}})},'Fjern…'),
+    h('button',{class:'btn sm pri',disabled:!n,onClick:act(bulkAddTags)},t('sel.addTag')),
+    h('button',{class:'btn sm',disabled:!n,onClick:act(bulkRemoveTags)},t('sel.removeTag')),
+    h('button',{class:'btn sm',disabled:!n,onClick:act(bulkCategory)},t('sel.hub')),
+    h('button',{class:'btn sm',disabled:!n,onClick:act(fs=>{const to=!fs.every(f=>f.pinned);fs.forEach(f=>f.pinned=to);save();render();toast(to?t('sel.addedToFav',noun(fs.length)):t('sel.removedFromFav',noun(fs.length)),'ok')})},allPinned?t('sel.removeFavorite'):t('sel.addFavorite')),
+    h('button',{class:'btn sm',disabled:!n,onClick:act(fs=>{const to=fs.every(f=>f.status==='arkiv')?'aktiv':'arkiv';fs.forEach(f=>f.status=to);UI.sel.clear();save();render();toast(to==='arkiv'?t('sel.movedToArchive',noun(fs.length)):t('sel.restoredFromArchive',noun(fs.length)),'ok')})},allArch?t('sel.restore'):t('sel.archive')),
+    h('button',{class:'btn sm danger',disabled:!n,onClick:act(fs=>{if(confirm(t('sel.confirmRemove',noun(fs.length)))){const ids=new Set(fs.map(f=>f.id));S.files=S.files.filter(f=>!ids.has(f.id));UI.sel.clear();save();render();toast(t('sel.removedToast',noun(fs.length)),'ok')}})},t('sel.removeDots')),
     h('span',{class:'spacer',style:{flex:1}}),
-    h('button',{class:'btn sm',onClick:exitSelect},'Færdig'));
+    h('button',{class:'btn sm',onClick:exitSelect},t('sel.done')));
 }
 function bulkAddTags(files){
   const tags=tagInput([]);let d;
-  const names=files.slice(0,6).map(f=>f.title).join(', ')+(files.length>6?' og '+(files.length-6)+' til':'');
-  d=dialog('Tilføj tag til '+files.length+(files.length===1?' fil':' filer'),[
-    fld('Tags',tags,'Tryk Enter efter hvert tag. Eksisterende tags foreslås.'),
+  const names=files.slice(0,6).map(f=>f.title).join(', ')+(files.length>6?t('bulk.andNMore',files.length-6):'');
+  d=dialog(t('bulk.addTagTitle',files.length),[
+    fld(t('fld.tags'),tags,t('fld.tagsHint')),
     h('p',{class:'muted sm'},names)],
-    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:()=>{
-      const t=tags.get();if(!t.length){toast('Skriv mindst ét tag','bad');return}
-      files.forEach(f=>{f.tags=f.tags||[];t.forEach(x=>{if(!f.tags.some(y=>y.toLowerCase()===x.toLowerCase())) f.tags.push(x)})});
-      save();d.close();render();toast('Tilføjet '+t.join(', ')+' til '+files.length+(files.length===1?' fil':' filer'),'ok');
-    }},'Tilføj')]);
+    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:()=>{
+      const picked=tags.get();if(!picked.length){toast(t('bulk.writeAtLeastOneTag'),'bad');return}
+      files.forEach(f=>{f.tags=f.tags||[];picked.forEach(x=>{if(!f.tags.some(y=>y.toLowerCase()===x.toLowerCase())) f.tags.push(x)})});
+      save();d.close();render();toast(t('bulk.addedTagsToast',picked.join(', '),files.length),'ok');
+    }},t('common.add'))]);
   tags.querySelector('input').focus();
 }
 function bulkRemoveTags(files){
-  const cnt={};files.forEach(f=>(f.tags||[]).forEach(t=>cnt[t]=(cnt[t]||0)+1));
+  const cnt={};files.forEach(f=>(f.tags||[]).forEach(tg=>cnt[tg]=(cnt[tg]||0)+1));
   const names=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]||a.localeCompare(b,'da'));
-  if(!names.length){toast('De valgte filer har ingen tags','warn');return}
+  if(!names.length){toast(t('bulk.noTagsWarn'),'warn');return}
   const pick=new Set(),box=h('div',{class:'chips'});let d;
-  const draw=()=>box.replaceChildren(...names.map(t=>h('button',{class:'chip'+(pick.has(t)?' on':''),onClick:()=>{pick.has(t)?pick.delete(t):pick.add(t);draw()}},t,h('span',{class:'ct'},cnt[t]+'/'+files.length))));
+  const draw=()=>box.replaceChildren(...names.map(tg=>h('button',{class:'chip'+(pick.has(tg)?' on':''),onClick:()=>{pick.has(tg)?pick.delete(tg):pick.add(tg);draw()}},tg,h('span',{class:'ct'},cnt[tg]+'/'+files.length))));
   draw();
-  d=dialog('Fjern tag fra '+files.length+(files.length===1?' fil':' filer'),[
-    h('p',{class:'muted',style:{marginTop:0}},'Vælg de tags, der skal fjernes fra de valgte filer. Tallet viser, hvor mange af dem der har tagget.'),box],
-    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:()=>{
-      if(!pick.size){toast('Vælg mindst ét tag','bad');return}
-      files.forEach(f=>{f.tags=(f.tags||[]).filter(t=>!pick.has(t))});
-      save();d.close();render();toast('Fjernede '+[...pick].join(', ')+' fra de valgte filer','ok');
-    }},'Fjern valgte tags')]);
+  d=dialog(t('bulk.removeTagTitle',files.length),[
+    h('p',{class:'muted',style:{marginTop:0}},t('bulk.removeTagBody')),box],
+    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:()=>{
+      if(!pick.size){toast(t('bulk.pickAtLeastOneTag'),'bad');return}
+      files.forEach(f=>{f.tags=(f.tags||[]).filter(tg=>!pick.has(tg))});
+      save();d.close();render();toast(t('bulk.removedTagsToast',[...pick].join(', ')),'ok');
+    }},t('bulk.removeSelectedTags'))]);
 }
 function bulkCategory(files){
   const same=files.every(f=>f.category===files[0].category)?files[0].category:null;let d;
-  const sel=h('select',{},h('option',{value:'__',selected:same===null},'Vælg hub…'),h('option',{value:'',selected:same===''},'Uden hub'),S.categories.map(c=>h('option',{value:c.id,selected:same===c.id},c.icon+' '+c.name)));
-  d=dialog('Flyt '+files.length+(files.length===1?' fil':' filer')+' til hub',[fld('Hub',sel)],
-    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:()=>{
-      if(sel.value==='__'){toast('Vælg en hub','bad');return}
-      files.forEach(f=>f.category=sel.value);save();d.close();render();toast('Hub ændret for '+files.length+(files.length===1?' fil':' filer'),'ok');
-    }},'Flyt')]);
+  const sel=h('select',{},h('option',{value:'__',selected:same===null},t('bulk.pickHubPlaceholder')),h('option',{value:'',selected:same===''},t('noHub')),S.categories.map(c=>h('option',{value:c.id,selected:same===c.id},c.icon+' '+c.name)));
+  d=dialog(t('bulk.moveToHubTitle',files.length),[fld(t('fld.hub'),sel)],
+    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:()=>{
+      if(sel.value==='__'){toast(t('bulk.pickAHub'),'bad');return}
+      files.forEach(f=>f.category=sel.value);save();d.close();render();toast(t('bulk.hubChangedToast',files.length),'ok');
+    }},t('bulk.move'))]);
 }
 addEventListener('keydown',e=>{
   if(e.key!=='Escape'||!S||!UI.select||document.querySelector('dialog[open]')) return;
@@ -835,15 +1562,15 @@ addEventListener('keydown',e=>{
 
 function fileMenu(anchor,f){
   menu(anchor,[
-    {label:'Åbn',fn:()=>openFile(f)},
-    ...(canPreview(f)?[{label:'Forhåndsvis…',fn:()=>showInPane(f)}]:[]),
-    ...(fileType(f.path)==='folder'?[]:[{label:isUrl(f.path)?'Åbn i browser':'Vis i mappe',fn:()=>openFile(f,true)}]),
-    {label:'Kopiér sti',fn:()=>copyPath(f)},
-    {label:'Redigér…',fn:()=>fileDialog(f)},
-    {label:f.pinned?'Fjern fra favoritter':'Tilføj til favoritter',fn:()=>togglePin(f)},
-    {label:f.status==='arkiv'?'Gendan fra arkiv':'Flyt til arkiv',fn:()=>{f.status=f.status==='arkiv'?'aktiv':'arkiv';save();render()}},
+    {label:t('card.open'),fn:()=>openFile(f)},
+    ...(canPreview(f)?[{label:t('menu.preview'),fn:()=>showInPane(f)}]:[]),
+    ...(fileType(f.path)==='folder'?[]:[{label:isUrl(f.path)?t('menu.openInBrowser'):t('menu.showInFolder'),fn:()=>openFile(f,true)}]),
+    {label:t('menu.copyPath'),fn:()=>copyPath(f)},
+    {label:t('common.edit'),fn:()=>fileDialog(f)},
+    {label:f.pinned?t('card.favRemove'):t('card.favAdd'),fn:()=>togglePin(f)},
+    {label:f.status==='arkiv'?t('menu.restoreFromArchive'):t('menu.moveToArchive'),fn:()=>{f.status=f.status==='arkiv'?'aktiv':'arkiv';save();render()}},
     '-',
-    {label:'Fjern fra dashboardet',danger:true,fn:()=>{if(confirm('Fjerne "'+f.title+'" fra dashboardet?\nSelve filen slettes ikke.')){S.files=S.files.filter(x=>x!==f);save();render()}}}]);
+    {label:t('menu.removeFromDashboard'),danger:true,fn:()=>{if(confirm(t('menu.confirmRemoveFile',f.title))){S.files=S.files.filter(x=>x!==f);save();render()}}}]);
 }
 
 /* ---------- Tags: farver, omdøb, slet ---------- */
@@ -853,7 +1580,7 @@ function setTagColor(name,col){
   save();render();
 }
 function renameTag(old){
-  const nn=prompt('Nyt navn til tagget "'+old+'":',old);
+  const nn=prompt(t('tag.renamePrompt',old),old);
   if(nn===null) return;
   const val=nn.trim();if(!val||val===old) return;
   const canon=allTags().find(x=>x.toLowerCase()===val.toLowerCase()&&x.toLowerCase()!==old.toLowerCase())||val;
@@ -866,8 +1593,8 @@ function renameTag(old){
   UI.tags.delete(old);save();render();
 }
 function deleteTag(name){
-  const n=S.files.filter(f=>(f.tags||[]).some(t=>t.toLowerCase()===name.toLowerCase())).length;
-  if(!confirm('Fjerne tagget "'+name+'" fra '+n+(n===1?' fil':' filer')+'?')) return;
+  const n=S.files.filter(f=>(f.tags||[]).some(tg=>tg.toLowerCase()===name.toLowerCase())).length;
+  if(!confirm(t('tag.confirmDelete',name,n))) return;
   S.files.forEach(f=>{f.tags=(f.tags||[]).filter(t=>t.toLowerCase()!==name.toLowerCase())});
   if(S.settings.tagColors) delete S.settings.tagColors[name.toLowerCase()];
   UI.tags.delete(name);save();render();
@@ -881,16 +1608,16 @@ function tagManager(){
       const col=tagColor(e.name);
       return h('div',{class:'tm-r'},
         h('span',{class:'nm'},h('span',{class:'chip'+(col?' tc':''),style:col?{'--tc':col}:null},col?h('i',{class:'dot',style:{'--c':col}}):null,e.name)),
-        h('span',{class:'n',title:'Antal filer'},String(e.n)),
+        h('span',{class:'n',title:t('tag.fileCount')},String(e.n)),
         h('span',{class:'swrow'},
-          h('button',{class:'sw sm none',title:'Ingen farve',onClick:()=>{setTagColor(e.name,null);draw()}},'×'),
+          h('button',{class:'sw sm none',title:t('tag.noColor'),onClick:()=>{setTagColor(e.name,null);draw()}},'×'),
           TAG_COLORS.map(cc=>h('button',{class:'sw sm'+(col===cc?' on':''),style:{'--c':cc},title:cc,onClick:()=>{setTagColor(e.name,cc);draw()}}))),
-        h('button',{class:'ib',title:'Omdøb (eller slå sammen med et andet tag)',onClick:()=>{renameTag(e.name);draw()}},'✎'),
-        h('button',{class:'ib',title:'Slet tagget fra alle filer',onClick:()=>{deleteTag(e.name);draw()}},'🗑'));
-    }):[h('div',{class:'hint'},'Ingen tags endnu. Tilføj tags til dine filer, så dukker de op her.')]));
+        h('button',{class:'ib',title:t('tag.renameTitle'),onClick:()=>{renameTag(e.name);draw()}},'✎'),
+        h('button',{class:'ib',title:t('tag.deleteTitle'),onClick:()=>{deleteTag(e.name);draw()}},'🗑'));
+    }):[h('div',{class:'hint'},t('tag.noneYet'))]));
   };
   draw();
-  d=dialog('Tags og farver',[h('p',{class:'muted',style:{marginTop:0}},'Vælg en farve til hvert tag. Farven vises på kort, filterknapper og ved redigering. Med ✎ kan du omdøbe et tag, og giver du det samme navn som et andet tag, bliver de slået sammen.'),box],[h('span',{class:'spacer'}),h('button',{class:'btn pri',onClick:()=>d.close()},'Luk')]);
+  d=dialog(t('tag.managerTitle'),[h('p',{class:'muted',style:{marginTop:0}},t('tag.managerBody')),box],[h('span',{class:'spacer'}),h('button',{class:'btn pri',onClick:()=>d.close()},t('common.close'))]);
 }
 
 /* ---------- Forhåndsvisning af Excel- og CSV-filer ---------- */
@@ -914,7 +1641,7 @@ const colName=i=>{let s='',n=i+1;while(n>0){const r=(n-1)%26;s=String.fromCharCo
 const colIndex=s=>{let n=0;for(const ch of s) n=n*26+(ch.charCodeAt(0)-64);return n-1};
 function unesc(s){return String(s).replace(/_x([0-9A-Fa-f]{4})_/g,(m,h4)=>{const cp=parseInt(h4,16);return cp<32?' ':String.fromCharCode(cp)}).replace(/&#x([0-9a-fA-F]+);/g,(m,h4)=>String.fromCodePoint(parseInt(h4,16))).replace(/&#(\d+);/g,(m,d4)=>String.fromCodePoint(+d4)).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&')}
 function previewToggle(){
-  return h('button',{class:'chip'+(S.settings.preview?' on':''),title:'Vis en rude ved siden af listen med indholdet af den valgte fil. Filer læses kun, når de er valgt.',onClick:()=>{S.settings.preview=!S.settings.preview;PANE.key='';save();render()}},'👁 Forhåndsvisning');
+  return h('button',{class:'chip'+(S.settings.preview?' on':''),title:t('lib.previewTitle'),onClick:()=>{S.settings.preview=!S.settings.preview;PANE.key='';save();render()}},t('lib.preview'));
 }
 async function fetchBytes(path,max){
   await flushSave();
@@ -927,7 +1654,7 @@ async function fetchBytes(path,max){
 function zipIndex(u8){
   const dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);let e=-1;
   for(let i=u8.length-22;i>=Math.max(0,u8.length-66000);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
-  if(e<0) throw new Error('Filen er ikke en gyldig Excel-fil');
+  if(e<0) throw new Error(t('xlsx.notValidExcel'));
   const n=dv.getUint16(e+10,true),map=new Map();let p=dv.getUint32(e+16,true);
   for(let k=0;k<n;k++){
     if(dv.getUint32(p,true)!==0x02014b50) break;
@@ -941,8 +1668,8 @@ function entryStream(z,name){
   const e=z.map.get(name);if(!e) return null;
   const nl=z.dv.getUint16(e.lho+26,true),el=z.dv.getUint16(e.lho+28,true),start=e.lho+30+nl+el,data=z.u8.subarray(start,start+e.csize);
   if(e.method===0) return new Blob([data]).stream();
-  if(e.method!==8) throw new Error('Ukendt komprimering i filen');
-  if(typeof DecompressionStream==='undefined') throw new Error('Forhåndsvisning kræver en nyere udgave af Edge eller Chrome');
+  if(e.method!==8) throw new Error(t('xlsx.unknownCompression'));
+  if(typeof DecompressionStream==='undefined') throw new Error(t('xlsx.needsNewerBrowser'));
   return new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
 }
 async function entryRead(z,name,stop){
@@ -953,16 +1680,16 @@ async function entryRead(z,name,stop){
 }
 const entryText=async(z,name)=>{const r=await entryRead(z,name);return r?r.text:null};
 async function xlsxOpen(u8){
-  if(u8[0]===0xD0&&u8[1]===0xCF) throw new Error('Filen er adgangskodebeskyttet eller i et ældre format');
+  if(u8[0]===0xD0&&u8[1]===0xCF) throw new Error(t('xlsx.passwordProtected'));
   const z=zipIndex(u8),wbx=await entryText(z,'xl/workbook.xml');
-  if(!wbx) throw new Error('Filen er ikke en Excel-projektmappe');
+  if(!wbx) throw new Error(t('xlsx.notAWorkbook'));
   const rels=(await entryText(z,'xl/_rels/workbook.xml.rels'))||'',relMap={};
   for(const m of rels.matchAll(/<Relationship\b[^>]*>/g)){const id=(m[0].match(/\bId="([^"]*)"/)||[])[1],t=(m[0].match(/\bTarget="([^"]*)"/)||[])[1];if(id) relMap[id]=t||''}
   const sheets=[...wbx.matchAll(/<sheet\b[^>]*>/g)].map(m=>{
     const s=m[0],rid=(s.match(/\br:id="([^"]*)"/)||[])[1],t=relMap[rid]||'',st=(s.match(/\bstate="([^"]*)"/)||[])[1];
     return{name:unesc((s.match(/\bname="([^"]*)"/)||[])[1]||''),path:t.startsWith('/')?t.slice(1):'xl/'+t,hidden:st==='hidden'||st==='veryHidden'};
   });
-  if(!sheets.length) throw new Error('Projektmappen har ingen ark');
+  if(!sheets.length) throw new Error(t('xlsx.noSheets'));
   return{z,sheets,styles:null,sst:null};
 }
 async function xlsxStyles(wb){
@@ -988,7 +1715,7 @@ function fmtNum(v,kind){
   const n=+v;if(!isFinite(n)) return String(v);
   if(kind==='pct') return String(parseFloat((n*100).toFixed(2))).replace('.',',')+' %';
   if(kind==='date'||kind==='datetime'||kind==='time'){
-    const d=new Date(Math.round((n-25569)*864e5)),ds=d.toLocaleDateString('da-DK',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'}),ts=d.toLocaleTimeString('da-DK',{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
+    const d=new Date(Math.round((n-25569)*864e5)),ds=d.toLocaleDateString(dateLocale(),{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'}),ts=d.toLocaleTimeString(dateLocale(),{timeZone:'UTC',hour:'2-digit',minute:'2-digit'});
     return kind==='date'?ds:kind==='time'?ts:ds+' '+ts;
   }
   return String(parseFloat(n.toPrecision(12))).replace('.',',');
@@ -1005,7 +1732,7 @@ async function xlsxStrings(wb,need){
 async function xlsxSheet(wb,sh,maxRows,maxCols){
   const st=await xlsxStyles(wb);let last=0;
   const r=await entryRead(wb.z,sh.path,t=>{if(t.length-last<30000) return false;last=t.length;return (t.match(/<\/row>/g)||[]).length>maxRows+2});
-  if(!r) throw new Error('Arket kunne ikke læses');
+  if(!r) throw new Error(t('xlsx.sheetUnreadable'));
   const txt=r.text,dim=(txt.match(/<dimension\b[^>]*\bref="([^"]*)"/)||[])[1]||'',cells=[],need=new Set();let more=r.cut;
   for(const rm of txt.matchAll(/<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g)){
     const rn=+((rm[1].match(/\br="(\d+)"/)||[])[1]||0);
@@ -1056,7 +1783,7 @@ function csvPreview(u8,truncated,maxRows,maxCols){
 }
 function pvTable(data,maxRows,maxCols,head){
   const rows=data.rows.slice(0,maxRows),cols=Math.min(data.cols,maxCols);
-  if(!rows.length||!rows.some(r=>r&&r.length)) return h('span',{class:'pv-msg'},'Arket er tomt');
+  if(!rows.length||!rows.some(r=>r&&r.length)) return h('span',{class:'pv-msg'},t('pane.sheetEmpty'));
   return h('div',{class:'pvw'},h('table',{class:'pvt'},
     head?h('thead',{},h('tr',{},h('th',{class:'rn'}),Array.from({length:cols},(_,i)=>h('th',{},colName(i))))):null,
     h('tbody',{},rows.map((r,ri)=>h('tr',{},h('td',{class:'rn'},String(ri+1)),Array.from({length:cols},(_,ci)=>{const v=(r&&r[ci])||'';return h('td',{title:v.length>22?v:null,class:/^-?[\d.,]+( %)?$/.test(v)?'num':''},v)}))))));
@@ -1106,16 +1833,16 @@ async function fillPane(){
   const key=f?[f.id,f.title,f.path,x&&x.modified,x&&x.size,x&&x.exists].join('|'):'-';
   if(key===PANE.key&&pane.firstChild) return;   // uændret: behold rudens indhold og rulleposition
   PANE.key=key;const tok=++PANE.tok;revokePaneBlob();
-  const close=h('button',{class:'ib',title:'Skjul forhåndsvisning',onClick:()=>{S.settings.preview=false;save();render()}},'✕');
-  if(!f){pane.replaceChildren(h('div',{class:'pane-head'},h('b',{},'Forhåndsvisning'),h('span',{class:'spacer'}),close),h('span',{class:'pv-msg'},'Vælg en fil på listen for at se indholdet her. Dobbeltklik åbner filen.'));return}
-  const meta=[f.path,x&&x.size!=null?fmtSize(x.size):'',x&&x.modified?'ændret '+fmtDate(x.modified):''].filter(Boolean).join('   ');
-  const tabs=h('div',{class:'chips'}),area=h('div',{class:'pane-body'},h('span',{class:'pv-msg'},'Henter filen…'));
+  const close=h('button',{class:'ib',title:t('pane.hidePreview'),onClick:()=>{S.settings.preview=false;save();render()}},'✕');
+  if(!f){pane.replaceChildren(h('div',{class:'pane-head'},h('b',{},t('pane.title')),h('span',{class:'spacer'}),close),h('span',{class:'pv-msg'},t('pane.pickFileHint')));return}
+  const meta=[f.path,x&&x.size!=null?fmtSize(x.size):'',x&&x.modified?t('card.modified',fmtDate(x.modified)):''].filter(Boolean).join('   ');
+  const tabs=h('div',{class:'chips'}),area=h('div',{class:'pane-body'},h('span',{class:'pv-msg'},t('pane.fetchingFile')));
   pane.replaceChildren(
-    h('div',{class:'pane-head'},h('b',{title:f.title},f.title),h('span',{class:'spacer'}),h('button',{class:'btn sm pri',onClick:()=>openFile(f)},fileType(f.path)==='folder'?'Åbn mappe':'Åbn'),close),
+    h('div',{class:'pane-head'},h('b',{title:f.title},f.title),h('span',{class:'spacer'}),h('button',{class:'btn sm pri',onClick:()=>openFile(f)},fileType(f.path)==='folder'?t('card.openFolder'):t('card.open')),close),
     h('div',{class:'muted sm mono pane-meta'},meta),tabs,area);
   const kind=previewKind(f.path);
-  if(!kind){area.replaceChildren(h('span',{class:'pv-msg'},'Ingen forhåndsvisning af denne filtype'));return}
-  if(x&&x.exists===false){area.replaceChildren(h('span',{class:'pv-msg'},'Filen findes ikke'));return}
+  if(!kind){area.replaceChildren(h('span',{class:'pv-msg'},t('pane.noPreviewForType')));return}
+  if(x&&x.exists===false){area.replaceChildren(h('span',{class:'pv-msg'},t('pane.fileNotFound')));return}
   const live=()=>tok===PANE.tok;
   try{
     if(kind==='image'){
@@ -1138,7 +1865,7 @@ async function fillPane(){
       let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(u8)}catch{text=new TextDecoder('windows-1252').decode(u8)}
       text=text.replace(/^﻿/,'');
       area.replaceChildren(h('pre',{class:'pv-text'},text));
-      if(size>u8.length) area.append(h('div',{class:'pv-note'},'Viser de første 200 KB.'));
+      if(size>u8.length) area.append(h('div',{class:'pv-note'},t('pane.showingFirst200KB')));
       return;
     }
     const R=50,C=26;
@@ -1146,9 +1873,9 @@ async function fillPane(){
       if(!live()) return;
       area.replaceChildren(h('div',{class:'pv-dlg-table'},pvTable(data,R,C,true)));
       const note=[];
-      if(data.dimR&&data.dimC) note.push('Arket er ca. '+data.dimR+' rækker og '+data.dimC+' kolonner.');
-      if(data.more) note.push('Viser de første '+R+' rækker og '+C+' kolonner.');
-      note.push('Værdier vises uden Excels talformatering, dog med datoer og procenter.');
+      if(data.dimR&&data.dimC) note.push(t('pane.sheetApproxSize',data.dimR,data.dimC));
+      if(data.more) note.push(t('pane.showingFirstRC',R,C));
+      note.push(t('pane.noFormattingNote'));
       area.append(h('div',{class:'pv-note'},[extra,note.join(' ')].filter(Boolean).join(' ')));
     };
     if(kind==='csv'){const {u8,size}=await fetchBytes(f.path,524288);show(csvPreview(u8,size>u8.length,R,C));return}
@@ -1156,12 +1883,12 @@ async function fillPane(){
     const wb=await xlsxOpen(u8);
     const load=async s=>{
       if(!live()) return;
-      tabs.replaceChildren(...wb.sheets.map(sx=>h('button',{class:'chip'+(sx===s?' on':''),onClick:()=>load(sx)},sx.name+(sx.hidden?' (skjult)':''))));
-      area.replaceChildren(h('span',{class:'pv-msg'},'Henter arket…'));
-      try{show(await xlsxSheet(wb,s,R,C))}catch(e){if(live()) area.replaceChildren(h('span',{class:'pv-msg'},'Kunne ikke læse arket: '+e.message))}
+      tabs.replaceChildren(...wb.sheets.map(sx=>h('button',{class:'chip'+(sx===s?' on':''),onClick:()=>load(sx)},sx.name+(sx.hidden?t('pane.hiddenSuffix'):''))));
+      area.replaceChildren(h('span',{class:'pv-msg'},t('pane.fetchingSheet')));
+      try{show(await xlsxSheet(wb,s,R,C))}catch(e){if(live()) area.replaceChildren(h('span',{class:'pv-msg'},t('pane.sheetReadError',e.message)))}
     };
     await load(wb.sheets.find(s=>!s.hidden)||wb.sheets[0]);
-  }catch(e){if(live()) area.replaceChildren(h('span',{class:'pv-msg'},'Ingen forhåndsvisning: '+e.message))}
+  }catch(e){if(live()) area.replaceChildren(h('span',{class:'pv-msg'},t('pane.noPreviewError',e.message)))}
 }
 
 /* ---------- Hub ---------- */
@@ -1172,21 +1899,21 @@ function hubView(c){
   const dues=files.filter(f=>f.due).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,6);
   const last=files.filter(f=>f.lastOpened).sort((a,b)=>b.lastOpened.localeCompare(a.lastOpened))[0];
   const head=h('section',{class:'hubhead',style:{'--c':c.color}},
-    h('p',{class:'muted',style:{margin:0,maxWidth:'80ch'}},c.description||'Tilføj en beskrivelse af hubben via Redigér.'),
+    h('p',{class:'muted',style:{margin:0,maxWidth:'80ch'}},c.description||t('hub.addDescriptionPrompt')),
     h('div',{class:'stats'},
-      h('span',{},h('b',{},files.length),files.length===1?'fil':'filer'),
-      h('span',{},h('b',{},pins.length),'favoritter'),
-      bad?h('span',{style:{color:'var(--bad)'}},h('b',{style:{color:'var(--bad)'}},bad),'mangler'):null,
-      last?h('span',{},'Sidst åbnet '+relTime(last.lastOpened)):null,
+      h('span',{},h('b',{},files.length),t('hub.filesWord',files.length)),
+      h('span',{},h('b',{},pins.length),t('hub.favorites')),
+      bad?h('span',{style:{color:'var(--bad)'}},h('b',{style:{color:'var(--bad)'}},bad),t('hub.missing')):null,
+      last?h('span',{},t('hub.lastOpened',relTime(last.lastOpened))):null,
       h('span',{class:'spacer',style:{flex:1}}),
-      h('button',{class:'btn sm',onClick:()=>catDialog(c)},'Redigér hub'),
-      h('button',{class:'btn sm',onClick:()=>fileDialog(null,{category:c.id})},'Ny fil i hubben')));
-  const notes=h('textarea',{class:'notes',placeholder:'Noter, huskeliste eller procedure for denne hub',onInput:e=>{c.notes=e.target.value;save()}},c.notes||'');
-  const left=h('section',{class:'panel',style:{'--c':c.color}},h('h3',{class:'h2'},'Genveje'),
-    pins.length?h('div',{class:'launch'},pins.slice(0,14).map(f=>h('button',{title:f.path,onClick:()=>openFile(f)},typeBadge(f),h('span',{},f.title)))):h('div',{class:'hint'},'Fastgør filer med ☆, så dukker de op her som knapper.'),
+      h('button',{class:'btn sm',onClick:()=>catDialog(c)},t('hub.editHub')),
+      h('button',{class:'btn sm',onClick:()=>fileDialog(null,{category:c.id})},t('hub.newFileInHub'))));
+  const notes=h('textarea',{class:'notes',placeholder:t('hub.notesPlaceholder'),onInput:e=>{c.notes=e.target.value;save()}},c.notes||'');
+  const left=h('section',{class:'panel',style:{'--c':c.color}},h('h3',{class:'h2'},t('hub.shortcuts')),
+    pins.length?h('div',{class:'launch'},pins.slice(0,14).map(f=>h('button',{title:f.path,onClick:()=>openFile(f)},typeBadge(f),h('span',{},f.title)))):h('div',{class:'hint'},t('hub.pinHint')),
     dues.length?h('div',{class:'duechips'},dues.map(f=>{const d=dueInfo(f);return h('span',{class:'chip',onClick:()=>openFile(f)},'⏰ '+(f.dueLabel||f.title)+' – '+d.t)})):null);
-  const right=h('section',{class:'panel'},h('h3',{class:'h2'},'Noter'),notes);
-  return[topbar(c.icon+' '+c.name,'Hub'),head,h('div',{class:'hubgrid'},left,right),...libraryBlock({lock:true})];
+  const right=h('section',{class:'panel'},h('h3',{class:'h2'},t('hub.notes')),notes);
+  return[topbar(c.icon+' '+c.name,t('lib.hub')),head,h('div',{class:'hubgrid'},left,right),...libraryBlock({lock:true})];
 }
 
 /* ================= Dialoger ================= */
@@ -1194,55 +1921,55 @@ function fileDialog(f,preset={}){
   const isNew=!f;
   const m=f?{...f,tags:[...(f.tags||[])]}:{id:uid(),title:preset.path?titleFromPath(preset.path):'',path:preset.path||'',desc:'',category:preset.category||UI.cat||'',tags:[],pinned:false,status:'aktiv',due:'',dueLabel:'',added:new Date().toISOString(),opens:0};
   let d;
-  const title=h('input',{value:m.title,placeholder:'Fx Månedlig indberetning'});
-  const path=h('input',{class:'mono',value:m.path,placeholder:'C:\\Rapporter\\fil.xlsx   \\\\server\\share\\fil.xlsx   https://…'});
+  const title=h('input',{value:m.title,placeholder:t('fdlg.titlePlaceholder')});
+  const path=h('input',{class:'mono',value:m.path,placeholder:t('fdlg.pathPlaceholder')});
   path.addEventListener('blur',()=>{path.value=cleanPath(path.value);if(!title.value&&path.value) title.value=titleFromPath(path.value)});
   const pick=kind=>browseDialog({mode:kind==='dir'?'folder':'files',multi:false,start:(path.value&&!isUrl(path.value))?(kind==='dir'?path.value:path.value.replace(/[\\/][^\\/]*$/,'')):'',onPick:ps=>{const p=ps[0];if(p){path.value=p;if(!title.value) title.value=titleFromPath(p)}}});
   const catSel=catSelect(m.category),tags=tagInput(m.tags);
-  const desc=h('textarea',{},m.desc||''),due=h('input',{type:'date',value:m.due||''}),dueL=h('input',{value:m.dueLabel||'',placeholder:'Fx Indberetning til myndighed'});
-  const stat=h('select',{},h('option',{value:'aktiv',selected:m.status!=='arkiv'},'Aktiv'),h('option',{value:'arkiv',selected:m.status==='arkiv'},'Arkiv'));
+  const desc=h('textarea',{},m.desc||''),due=h('input',{type:'date',value:m.due||''}),dueL=h('input',{value:m.dueLabel||'',placeholder:t('fdlg.dueLabelPlaceholder')});
+  const stat=h('select',{},h('option',{value:'aktiv',selected:m.status!=='arkiv'},t('fdlg.active')),h('option',{value:'arkiv',selected:m.status==='arkiv'},t('fdlg.archive')));
   const pin=h('input',{type:'checkbox',checked:!!m.pinned});
   const doSave=()=>{
-    const p=cleanPath(path.value);if(!p){toast('Angiv en sti eller et link','bad');path.focus();return}
-    if(S.files.some(x=>x!==f&&x.path.toLowerCase()===p.toLowerCase())&&!confirm('Den sti findes allerede i dashboardet. Tilføj alligevel?')) return;
+    const p=cleanPath(path.value);if(!p){toast(t('fdlg.giveAPath'),'bad');path.focus();return}
+    if(S.files.some(x=>x!==f&&x.path.toLowerCase()===p.toLowerCase())&&!confirm(t('fdlg.pathExistsConfirm'))) return;
     Object.assign(m,{title:title.value.trim()||titleFromPath(p),path:p,category:catSel.value,tags:tags.get(),desc:desc.value.trim(),due:due.value,dueLabel:dueL.value.trim(),status:stat.value,pinned:pin.checked});
     if(isNew) S.files.push(m);else Object.assign(f,m);
     save();d.close();render();checkHealth([p]);
   };
   const btns=[];
-  if(!isNew) btns.push(h('button',{class:'btn danger',onClick:()=>{if(confirm('Fjerne "'+f.title+'" fra dashboardet?\nSelve filen slettes ikke.')){S.files=S.files.filter(x=>x!==f);save();d.close();render()}}},'Fjern'));
-  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:doSave},isNew?'Tilføj fil':'Gem ændringer'));
-  d=dialog(isNew?'Tilføj fil':'Redigér fil',[
-    fld('Sti eller link',h('div',{class:'inl'},path,h('button',{class:'btn',type:'button',onClick:()=>pick(false)},'Vælg fil…'),h('button',{class:'btn',type:'button',title:'Peg på en mappe i stedet for en fil',onClick:()=>pick('dir')},'Mappe…')),'Lokal sti, netværkssti eller et SharePoint/OneDrive-link.'),
-    fld('Navn',title),
-    h('div',{class:'two'},fld('Hub',catSel),fld('Status',stat)),
-    fld('Tags',tags,'Tryk Enter efter hvert tag. Tags bliver til filterknapper.'),
-    fld('Beskrivelse',desc),
-    h('div',{class:'two'},fld('Frist (valgfri)',due),fld('Hvad er fristen?',dueL)),
-    h('label',{class:'chk'},pin,'Fastgør som favorit')],btns);
+  if(!isNew) btns.push(h('button',{class:'btn danger',onClick:()=>{if(confirm(t('menu.confirmRemoveFile',f.title))){S.files=S.files.filter(x=>x!==f);save();d.close();render()}}},t('common.remove')));
+  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:doSave},isNew?t('fdlg.addFile'):t('fdlg.saveChanges')));
+  d=dialog(isNew?t('fdlg.addFile'):t('fdlg.editFile'),[
+    fld(t('fld.pathOrLink'),h('div',{class:'inl'},path,h('button',{class:'btn',type:'button',onClick:()=>pick(false)},t('fdlg.pickFile')),h('button',{class:'btn',type:'button',title:t('fdlg.folderInsteadTitle'),onClick:()=>pick('dir')},t('fdlg.folderBtn'))),t('fdlg.pathHint')),
+    fld(t('fld.name'),title),
+    h('div',{class:'two'},fld(t('fld.hub'),catSel),fld(t('fld.status'),stat)),
+    fld(t('fld.tags'),tags,t('fld.tagsHint2')),
+    fld(t('fld.description'),desc),
+    h('div',{class:'two'},fld(t('fld.deadlineOptional'),due),fld(t('fld.whatIsDeadline'),dueL)),
+    h('label',{class:'chk'},pin,t('fdlg.pinAsFavorite'))],btns);
   (isNew?path:title).focus();
 }
 
 function importDialog(rows,preset={}){
   const have=new Set(S.files.map(f=>f.path.toLowerCase())),seen=new Set(),items=[];
   rows.forEach(r=>{const p=cleanPath(r.path);if(!p||seen.has(p.toLowerCase())) return;seen.add(p.toLowerCase());const dupe=have.has(p.toLowerCase());items.push({path:p,title:r.title||titleFromPath(p),dupe,checked:!dupe})});
-  if(!items.length){toast('Ingen gyldige stier','warn');return}
+  if(!items.length){toast(t('imp.noValidPaths'),'warn');return}
   let d;const catSel=catSelect(preset.category||''),tags=tagInput([]);
   const add=h('button',{class:'btn pri'},'');
-  const upd=()=>{const n=items.filter(i=>i.checked).length;add.textContent='Tilføj '+n+(n===1?' fil':' filer');add.disabled=!n};
+  const upd=()=>{const n=items.filter(i=>i.checked).length;add.textContent=t('imp.addN',n);add.disabled=!n};
   const list=h('div',{class:'imp'},items.map(i=>h('div',{class:'imp-r'},
     h('input',{type:'checkbox',checked:i.checked,onChange:e=>{i.checked=e.target.checked;upd()}}),
     h('input',{value:i.title,onInput:e=>{i.title=e.target.value}}),
-    h('small',{},i.path,i.dupe?h('span',{class:'dupe'},'  findes allerede'):null))));
+    h('small',{},i.path,i.dupe?h('span',{class:'dupe'},t('imp.alreadyExists')):null))));
   add.addEventListener('click',()=>{
-    const sel=items.filter(i=>i.checked),t=tags.get(),now=new Date().toISOString();
-    sel.forEach((i,n)=>S.files.push({id:uid(),title:i.title.trim()||titleFromPath(i.path),path:i.path,desc:'',category:catSel.value,tags:[...t],pinned:false,status:'aktiv',due:'',dueLabel:'',added:new Date(Date.now()+n).toISOString(),opens:0}));
-    save();d.close();render();checkHealth(sel.map(i=>i.path));toast(sel.length+(sel.length===1?' fil tilføjet':' filer tilføjet'),'ok');
+    const sel=items.filter(i=>i.checked),picked=tags.get(),now=new Date().toISOString();
+    sel.forEach((i,n)=>S.files.push({id:uid(),title:i.title.trim()||titleFromPath(i.path),path:i.path,desc:'',category:catSel.value,tags:[...picked],pinned:false,status:'aktiv',due:'',dueLabel:'',added:new Date(Date.now()+n).toISOString(),opens:0}));
+    save();d.close();render();checkHealth(sel.map(i=>i.path));toast(t('imp.addedToast',sel.length),'ok');
   });
-  d=dialog('Tilføj '+items.length+(items.length===1?' fil':' filer'),[
-    h('div',{class:'two'},fld('Hub til alle',catSel),fld('Tags til alle',tags)),
-    h('div',{class:'sec',style:{padding:'4px 0 8px'}},'Filer',h('span',{},h('button',{class:'btn sm',onClick:()=>{items.forEach(i=>i.checked=true);d.querySelectorAll('.imp-r input[type=checkbox]').forEach(c=>c.checked=true);upd()}},'Vælg alle'),' ',h('button',{class:'btn sm',onClick:()=>{items.forEach(i=>i.checked=false);d.querySelectorAll('.imp-r input[type=checkbox]').forEach(c=>c.checked=false);upd()}},'Fravælg alle'))),
-    list],[h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),add]);
+  d=dialog(t('imp.addN',items.length),[
+    h('div',{class:'two'},fld(t('fld.hubForAll'),catSel),fld(t('fld.tagsForAll'),tags)),
+    h('div',{class:'sec',style:{padding:'4px 0 8px'}},t('imp.filesHeading'),h('span',{},h('button',{class:'btn sm',onClick:()=>{items.forEach(i=>i.checked=true);d.querySelectorAll('.imp-r input[type=checkbox]').forEach(c=>c.checked=true);upd()}},t('imp.selectAll')),' ',h('button',{class:'btn sm',onClick:()=>{items.forEach(i=>i.checked=false);d.querySelectorAll('.imp-r input[type=checkbox]').forEach(c=>c.checked=false);upd()}},t('imp.deselectAll')))),
+    list],[h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),add]);
   upd();
 }
 /* ---------- Filvælger (egen, uafhængig af Windows-dialoger) ---------- */
@@ -1268,24 +1995,24 @@ function parentOf(p){const c=crumbs(p);return c.length>1?c[c.length-2].p:''}
 async function browseDialog(o){
   const mode=o.mode||'files',multi=o.multi!==false;
   let d,cur='',all=true,lastR=null,started=false;const sel=new Map(),hist=[];
-  const addr=h('input',{class:'mono',placeholder:'Skriv en sti og tryk Enter, fx \\\\server\\share\\mappe'});
+  const addr=h('input',{class:'mono',placeholder:t('browser.addrPlaceholder')});
   const places=h('div',{class:'chips',style:{margin:'0 0 8px'}}),list=h('div',{class:'bl'});
   const okBtn=h('button',{class:'btn pri'});
-  const backBtn=h('button',{class:'btn',title:'Tilbage (Alt+←)',onClick:()=>{if(!hist.length) return;go(hist.pop(),true)}},'←');
-  const upBtn=h('button',{class:'btn',title:'Én mappe op (Backspace)',onClick:()=>{if(cur) go(parentOf(cur))}},'↑');
+  const backBtn=h('button',{class:'btn',title:t('browser.back'),onClick:()=>{if(!hist.length) return;go(hist.pop(),true)}},'←');
+  const upBtn=h('button',{class:'btn',title:t('browser.upOne'),onClick:()=>{if(cur) go(parentOf(cur))}},'↑');
   const crumbBar=h('div',{class:'crumbs'});
   const drawNav=()=>{
     backBtn.disabled=!hist.length;upBtn.disabled=!cur;
-    crumbBar.replaceChildren(h('button',{class:'crumb',onClick:()=>go('')},'💽 Denne pc'),...crumbs(cur).flatMap(x=>[h('span',{class:'muted'},'›'),h('button',{class:'crumb',onClick:()=>go(x.p)},x.n)]));
+    crumbBar.replaceChildren(h('button',{class:'crumb',onClick:()=>go('')},t('browser.thisPC')),...crumbs(cur).flatMap(x=>[h('span',{class:'muted'},'›'),h('button',{class:'crumb',onClick:()=>go(x.p)},x.n)]));
   };
   const finish=paths=>{if(!paths.length) return;const f=paths[0];S.settings.lastBrowse=cur||(mode==='folder'?f:f.replace(/[\\/][^\\/]*$/,''));save();d.close();o.onPick(paths)};
   const upd=()=>{
-    if(mode==='folder'){const n=sel.size;okBtn.textContent=n?'Vælg '+n+(n===1?' mappe':' mapper'):'Vælg denne mappe';okBtn.disabled=!n&&!cur}
-    else{const n=sel.size;okBtn.textContent=multi?'Tilføj '+n+(n===1?' fil':' filer'):'Vælg fil';okBtn.disabled=!n}
+    if(mode==='folder'){const n=sel.size;okBtn.textContent=n?t('browser.pickFolderN',n):t('browser.pickThisFolder');okBtn.disabled=!n&&!cur}
+    else{const n=sel.size;okBtn.textContent=multi?t('browser.addFileN',n):t('browser.pickFile');okBtn.disabled=!n}
   };
   const draw=r=>{
     lastR=r;cur=r.path;addr.value=cur;const st=list.scrollTop,rows=[];
-    if(cur) rows.push(h('div',{class:'bl-r',onClick:()=>go(parentOf(cur))},h('span',{class:'bi'},'⬆'),h('span',{class:'bn'},'Opad (..)')));
+    if(cur) rows.push(h('div',{class:'bl-r',onClick:()=>go(parentOf(cur))},h('span',{class:'bi'},'⬆'),h('span',{class:'bn'},t('browser.upDotDot'))));
     const es=r.entries.filter(e=>mode==='files'||e.type!=='file');
     es.forEach(e=>{
       if(e.type==='file'){const on=sel.has(e.path);
@@ -1293,11 +2020,11 @@ async function browseDialog(o){
           h('span',{class:'bi'},on?'☑':'☐'),h('span',{class:'bn'},e.name),h('span',{class:'bm'},[e.size!=null?fmtSize(e.size):'',e.modified?fmtDate(e.modified):''].filter(Boolean).join('   '))))}
       else if(mode==='folder'&&multi&&e.type==='dir'){const on=sel.has(e.path);
         rows.push(h('div',{class:'bl-r'+(on?' sel':''),onClick:()=>go(e.path)},
-          h('span',{class:'bi cb',title:on?'Fjern markering':'Markér mappen',onClick:ev=>{ev.stopPropagation();if(sel.has(e.path)) sel.delete(e.path);else sel.set(e.path,1);draw(lastR)}},on?'☑':'☐'),
+          h('span',{class:'bi cb',title:on?t('browser.deselect'):t('browser.select'),onClick:ev=>{ev.stopPropagation();if(sel.has(e.path)) sel.delete(e.path);else sel.set(e.path,1);draw(lastR)}},on?'☑':'☐'),
           h('span',{class:'bi'},'📁'),h('span',{class:'bn'},e.name)))}
       else rows.push(h('div',{class:'bl-r',onClick:()=>go(e.path)},h('span',{class:'bi'},e.type==='drive'?'💽':'📁'),h('span',{class:'bn'},e.name)));
     });
-    if(!es.length) rows.push(h('div',{class:'hint'},mode==='files'&&!all?'Ingen Excel- eller CSV-filer her. Gå til en undermappe, eller fjern kryds ved “Vis kun Excel- og CSV-filer”.':'Ingen undermapper her.'));
+    if(!es.length) rows.push(h('div',{class:'hint'},mode==='files'&&!all?t('browser.noExcelHereOnly'):t('browser.noSubfolders')));
     list.replaceChildren(...rows);list.scrollTop=st;drawNav();drawPlaces();upd();
   };
   const go=async(p,back)=>{try{const r=await api('/api/ls',{path:p,all});if(started&&!back&&r.path!==cur) hist.push(cur);started=true;list.scrollTop=0;draw(r);return true}catch(e){toast(e.message,'bad');return false}};
@@ -1307,33 +2034,33 @@ async function browseDialog(o){
     const mine=(S.settings.places||[]).filter(pl=>{const k=pl.path.replace(/[\\/]+$/,'').toLowerCase();if(seen.has(k)) return false;seen.add(k);return true});
     const saved=cur&&(S.settings.places||[]).some(x=>x.path.toLowerCase()===cur.toLowerCase());
     places.replaceChildren(
-      h('button',{class:'chip',onClick:()=>go('')},'💽 Denne pc'),
+      h('button',{class:'chip',onClick:()=>go('')},t('browser.thisPC')),
       ...sys.map(pl=>h('button',{class:'chip',title:pl.path,onClick:()=>go(pl.path)},pl.name)),
       ...mine.map(pl=>h('span',{class:'chip cust',title:pl.path,onClick:()=>go(pl.path)},'📌 '+pl.name,
-        h('b',{class:'x',title:'Fjern genvej',onClick:e=>{e.stopPropagation();S.settings.places=S.settings.places.filter(x=>x.path!==pl.path);save();drawPlaces()}},'×'))),
-      h('button',{class:'chip ghost',disabled:!cur,title:cur?cur:'Gå ind i en mappe først',onClick:()=>{
+        h('b',{class:'x',title:t('browser.removeShortcut'),onClick:e=>{e.stopPropagation();S.settings.places=S.settings.places.filter(x=>x.path!==pl.path);save();drawPlaces()}},'×'))),
+      h('button',{class:'chip ghost',disabled:!cur,title:cur?cur:t('browser.enterHere'),onClick:()=>{
         if(saved){S.settings.places=S.settings.places.filter(x=>x.path.toLowerCase()!==cur.toLowerCase());save();drawPlaces();return}
-        const leaf=(crumbs(cur).slice(-1)[0]||{n:cur}).n,nm=prompt('Navn på genvejen:',leaf);
+        const leaf=(crumbs(cur).slice(-1)[0]||{n:cur}).n,nm=prompt(t('browser.shortcutNamePrompt'),leaf);
         if(nm===null) return;
         S.settings.places=[...(S.settings.places||[]),{name:nm.trim()||leaf,path:cur}];save();drawPlaces();
-      }},saved?'★ Gemt som genvej – klik for at fjerne':'＋ Gem denne mappe som genvej'));
+      }},saved?t('browser.shortcutSaved'):t('browser.saveAsShortcut')));
   };
   addr.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go(cleanPath(addr.value))}});
   const allChk=h('input',{type:'checkbox',checked:!all,onChange:e=>{all=!e.target.checked;go(cur)}});
   okBtn.addEventListener('click',()=>finish(mode==='folder'?(sel.size?[...sel.keys()]:[cur]):[...sel.keys()]));
-  const btns=[h('button',{class:'btn sm',title:'Åbn den almindelige Windows-dialog i stedet',onClick:async()=>{try{finish(await nativePick(mode,multi))}catch(e){toast(e.message,'bad')}}},'Prøv Windows-dialog')];
-  if(mode==='files'&&multi) btns.push(h('button',{class:'btn sm',onClick:()=>{(lastR?lastR.entries:[]).filter(e=>e.type==='file').forEach(e=>sel.set(e.path,1));if(lastR) draw(lastR)}},'Vælg alle i mappen'));
-  if(mode==='folder'&&multi) btns.push(h('button',{class:'btn sm',onClick:()=>{(lastR?lastR.entries:[]).filter(e=>e.type==='dir').forEach(e=>sel.set(e.path,1));if(lastR) draw(lastR)}},'Markér alle undermapper'));
-  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),okBtn);
-  d=dialog(o.title||(mode==='folder'?'Vælg mappe':multi?'Vælg filer':'Vælg fil'),[
-    places,h('div',{class:'inl'},backBtn,upBtn,addr,h('button',{class:'btn',onClick:()=>go(cleanPath(addr.value))},'Gå')),crumbBar,
-    mode==='folder'&&multi?h('div',{class:'hint',style:{padding:'8px 0 0'}},'Klik på en mappe for at gå ind i den. Sæt kryds for at vælge den. Du kan vælge flere mapper og bladre imellem dem. Uden kryds vælges den mappe, du står i.'):null,
-    mode==='files'?h('label',{class:'chk',style:{margin:'8px 0 0'}},allChk,'Vis kun Excel- og CSV-filer'):null,
+  const btns=[h('button',{class:'btn sm',title:t('browser.tryWindowsDialog'),onClick:async()=>{try{finish(await nativePick(mode,multi))}catch(e){toast(e.message,'bad')}}},t('browser.tryWindowsDialogBtn'))];
+  if(mode==='files'&&multi) btns.push(h('button',{class:'btn sm',onClick:()=>{(lastR?lastR.entries:[]).filter(e=>e.type==='file').forEach(e=>sel.set(e.path,1));if(lastR) draw(lastR)}},t('browser.selectAllInFolder')));
+  if(mode==='folder'&&multi) btns.push(h('button',{class:'btn sm',onClick:()=>{(lastR?lastR.entries:[]).filter(e=>e.type==='dir').forEach(e=>sel.set(e.path,1));if(lastR) draw(lastR)}},t('browser.selectAllSubfolders')));
+  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),okBtn);
+  d=dialog(o.title||(mode==='folder'?t('browser.pickFolder'):multi?t('browser.pickFilesTitle'):t('browser.pickFile')),[
+    places,h('div',{class:'inl'},backBtn,upBtn,addr,h('button',{class:'btn',onClick:()=>go(cleanPath(addr.value))},t('browser.goBtn'))),crumbBar,
+    mode==='folder'&&multi?h('div',{class:'hint',style:{padding:'8px 0 0'}},t('browser.folderStepHint')):null,
+    mode==='files'?h('label',{class:'chk',style:{margin:'8px 0 0'}},allChk,t('browser.excelCsvOnly')):null,
     list],btns);
   d.addEventListener('keydown',e=>{
-    const t=(e.target.tagName||'').toLowerCase();
+    const tg=(e.target.tagName||'').toLowerCase();
     if(e.altKey&&e.key==='ArrowLeft'){e.preventDefault();backBtn.click()}
-    else if(e.key==='Backspace'&&t!=='input'){e.preventDefault();upBtn.click()}
+    else if(e.key==='Backspace'&&tg!=='input'){e.preventDefault();upBtn.click()}
   });
   upd();
   if(!placesCache){try{placesCache=(await api('/api/ls',{path:''})).places||[]}catch{placesCache=[]}}
@@ -1342,102 +2069,102 @@ async function browseDialog(o){
   if(!(start&&await go(start))) await go('');
 }
 function pickFlow(preset){
-  browseDialog({mode:'files',multi:true,title:'Vælg filer',onPick:ps=>importDialog(ps.map(p=>({path:p})),preset)});
+  browseDialog({mode:'files',multi:true,title:t('browser.pickFilesTitle'),onPick:ps=>importDialog(ps.map(p=>({path:p})),preset)});
 }
 function pasteDialog(preset){
-  let d;const ta=h('textarea',{style:{minHeight:'180px',fontFamily:'var(--mono)',fontSize:'12.5px'},placeholder:'C:\\Rapporter\\Maaned.xlsx\n\\\\server\\share\\Budget.xlsx\nhttps://firma.sharepoint.com/…/fil.xlsx'});
-  d=dialog('Indsæt stier eller links',[h('p',{class:'muted',style:{marginTop:0}},'Én sti eller ét link pr. linje. I Stifinder kan du markere flere filer og vælge “Kopiér som sti” (Shift + højreklik), og så indsætte her. Citationstegn fjernes automatisk.'),ta],
-    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:()=>{const rows=ta.value.split(/\r?\n/).map(cleanPath).filter(Boolean).map(path=>({path}));if(!rows.length) return;d.close();importDialog(rows,preset)}},'Fortsæt')]);
+  let d;const ta=h('textarea',{style:{minHeight:'180px',fontFamily:'var(--mono)',fontSize:'12.5px'},placeholder:t('paste.placeholder')});
+  d=dialog(t('paste.title'),[h('p',{class:'muted',style:{marginTop:0}},t('paste.body')),ta],
+    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:()=>{const rows=ta.value.split(/\r?\n/).map(cleanPath).filter(Boolean).map(path=>({path}));if(!rows.length) return;d.close();importDialog(rows,preset)}},t('paste.continue'))]);
   ta.focus();
 }
 function scanDialog(preset){
   let d;const folders=[];
   const list=h('div',{class:'chips',style:{marginBottom:'10px'}});
-  const p=h('input',{class:'mono',placeholder:'Skriv eller indsæt en mappesti, og tryk Enter'}),rec=h('input',{type:'checkbox'});
-  const go=h('button',{class:'btn pri'},'Scan');
+  const p=h('input',{class:'mono',placeholder:t('scan.folderPlaceholder')}),rec=h('input',{type:'checkbox'});
+  const go=h('button',{class:'btn pri'},t('scan.scanBtn'));
   const draw=()=>{
-    list.replaceChildren(...(folders.length?folders.map(f=>h('span',{class:'chip on',title:f},'📁 '+midEllipsis(f,60),h('b',{class:'x',title:'Fjern',onClick:()=>{folders.splice(folders.indexOf(f),1);draw()}},'×'))):[h('span',{class:'hint',style:{padding:0}},'Ingen mapper valgt endnu')]));
-    go.disabled=!folders.length;go.textContent=folders.length>1?'Scan '+folders.length+' mapper':'Scan';
+    list.replaceChildren(...(folders.length?folders.map(f=>h('span',{class:'chip on',title:f},'📁 '+midEllipsis(f,60),h('b',{class:'x',title:t('common.remove'),onClick:()=>{folders.splice(folders.indexOf(f),1);draw()}},'×'))):[h('span',{class:'hint',style:{padding:0}},t('scan.noFoldersYet'))]));
+    go.disabled=!folders.length;go.textContent=folders.length>1?t('scan.scanN',folders.length):t('scan.scanBtn');
   };
   const addPath=v=>{v=cleanPath(v);if(v&&!folders.some(x=>x.toLowerCase()===v.toLowerCase())) folders.push(v);draw()};
   p.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addPath(p.value);p.value=''}});
-  const browse=h('button',{class:'btn',onClick:()=>browseDialog({mode:'folder',title:'Vælg mapper, der skal scannes',start:folders[folders.length-1]||'',onPick:ps=>ps.forEach(addPath)})},'Vælg mapper…');
+  const browse=h('button',{class:'btn',onClick:()=>browseDialog({mode:'folder',title:t('scan.pickFoldersTitle'),start:folders[folders.length-1]||'',onPick:ps=>ps.forEach(addPath)})},t('scan.pickFoldersBtn'));
   go.addEventListener('click',async()=>{
     if(p.value.trim()){addPath(p.value);p.value=''}
     if(!folders.length) return;
     go.disabled=true;const all=[],fails=[];let trunc=false;
     for(let i=0;i<folders.length;i++){
-      go.textContent='Scanner '+(i+1)+' af '+folders.length+'…';
+      go.textContent=t('scan.scanningN',i+1,folders.length);
       try{const r=await api('/api/scan',{folder:folders[i],recurse:rec.checked});r.files.forEach(x=>all.push(x));if(r.truncated) trunc=true}
       catch(e){fails.push(folders[i]+': '+e.message)}
     }
-    if(!all.length){toast(fails.length?'Kunne ikke scanne: '+fails.join('; '):'Ingen Excel- eller CSV-filer fundet','bad');draw();return}
+    if(!all.length){toast(fails.length?t('scan.couldNotScan',fails.join('; ')):t('scan.noFilesFound'),'bad');draw();return}
     d.close();importDialog(all.map(x=>({path:x.path,title:x.name})),preset);
-    if(fails.length) toast('Kunne ikke scanne: '+fails.join('; '),'bad');
-    else if(trunc) toast('Højst 500 filer pr. mappe vises','warn');
+    if(fails.length) toast(t('scan.couldNotScan',fails.join('; ')),'bad');
+    else if(trunc) toast(t('scan.tooManyPerFolder'),'warn');
   });
-  d=dialog('Scan mapper',[
-    fld('Mapper',h('div',{},list,h('div',{class:'inl'},p,browse)),'Find alle filer i de valgte mapper.'),
-    h('label',{class:'chk'},rec,'Medtag undermapper (kan tage tid på netværksdrev)')],
-    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),go]);
+  d=dialog(t('scan.dialogTitle'),[
+    fld(t('fld.folders'),h('div',{},list,h('div',{class:'inl'},p,browse)),t('scan.findAllHint')),
+    h('label',{class:'chk'},rec,t('scan.includeSubfolders'))],
+    [h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),go]);
   draw();
 }
 function catDialog(c,preset={}){
   const isNew=!c;
   const m=c?{...c}:{id:'',name:'',icon:'📊',color:CAT_COLORS[S.categories.length%CAT_COLORS.length],hub:true,description:'',notes:''};
   let d;
-  const name=h('input',{value:m.name,placeholder:'Fx Affaldsdata'}),icon=h('input',{value:m.icon,style:{width:'70px',textAlign:'center'}}),desc=h('textarea',{},m.description||'');
+  const name=h('input',{value:m.name,placeholder:t('cat.namePlaceholder')}),icon=h('input',{value:m.icon,style:{width:'70px',textAlign:'center'}}),desc=h('textarea',{},m.description||'');
   const sw=h('div',{class:'swatches'});const drawSw=()=>sw.replaceChildren(...CAT_COLORS.map(col=>h('button',{type:'button',class:'sw'+(m.color===col?' on':''),style:{'--c':col},title:col,onClick:()=>{m.color=col;drawSw()}})));drawSw();
   const ems=h('div',{class:'emojis'},EMOJIS.map(e=>h('button',{type:'button',onClick:()=>{icon.value=e}},e)));
   const btns=[];
   if(!isNew){
-    btns.push(h('button',{class:'btn danger',onClick:()=>{if(confirm('Slette "'+c.name+'"?\nFilerne beholdes, men mister deres hub.')){S.files.forEach(f=>{if(f.category===c.id) f.category=''});S.categories=S.categories.filter(x=>x!==c);save();d.close();if(location.hash.includes(c.id)) location.hash='#/';else render()}}},'Slet'));
+    btns.push(h('button',{class:'btn danger',onClick:()=>{if(confirm(t('cat.confirmDelete',c.name))){S.files.forEach(f=>{if(f.category===c.id) f.category=''});S.categories=S.categories.filter(x=>x!==c);save();d.close();if(location.hash.includes(c.id)) location.hash='#/';else render()}}},t('common.delete')));
     const mv=dir=>()=>{const i=S.categories.indexOf(c),j=i+dir;if(j<0||j>=S.categories.length) return;[S.categories[i],S.categories[j]]=[S.categories[j],S.categories[i]];save();render()};
-    btns.push(h('button',{class:'btn',title:'Flyt op i listen',onClick:mv(-1)},'↑'),h('button',{class:'btn',title:'Flyt ned i listen',onClick:mv(1)},'↓'));
+    btns.push(h('button',{class:'btn',title:t('cat.moveUp'),onClick:mv(-1)},'↑'),h('button',{class:'btn',title:t('cat.moveDown'),onClick:mv(1)},'↓'));
   }
-  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},'Annullér'),h('button',{class:'btn pri',onClick:()=>{
-    const n=name.value.trim();if(!n){toast('Giv den et navn','bad');name.focus();return}
+  btns.push(h('span',{class:'spacer'}),h('button',{class:'btn',onClick:()=>d.close()},t('common.cancel')),h('button',{class:'btn pri',onClick:()=>{
+    const n=name.value.trim();if(!n){toast(t('cat.giveItAName'),'bad');name.focus();return}
     Object.assign(m,{name:n,icon:icon.value.trim()||'📁',description:desc.value.trim(),hub:true});
     if(isNew){m.id=n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+uid().slice(-4);S.categories.push(m)}else Object.assign(c,m);
     save();d.close();if(isNew&&m.hub) location.hash='#/hub/'+m.id;else render();
-  }},isNew?'Opret':'Gem'));
-  d=dialog(isNew?'Ny hub':'Redigér hub',[
-    h('div',{class:'inl'},fld('Ikon',h('div',{},icon,ems)),fld('Navn',name)),
-    fld('Farve',sw),
-    fld('Beskrivelse',desc,'Vises på hub-siden og på oversigten.')],btns);
+  }},isNew?t('cat.create'):t('common.save')));
+  d=dialog(isNew?t('cat.newHubTitle'):t('hub.editHub'),[
+    h('div',{class:'inl'},fld(t('fld.icon'),h('div',{},icon,ems)),fld(t('fld.name'),name)),
+    fld(t('fld.color'),sw),
+    fld(t('fld.description'),desc,t('cat.descHint'))],btns);
   name.focus();
 }
 function settingsDialog(){
   let d;
   const file=h('input',{type:'file',accept:'.json',style:{display:'none'},onChange:async e=>{
     const f=e.target.files[0];if(!f) return;
-    try{const j=JSON.parse(await f.text());if(!Array.isArray(j.files)||!Array.isArray(j.categories)) throw new Error('Filen er ikke en gyldig backup');
-      if(!confirm('Erstat alt i dashboardet med indholdet af backup-filen ('+j.files.length+' filer)?')) return;
-      S=migrate(j);save();d.close();resetUI(parseRoute());render();checkHealth();toast('Backup indlæst','ok')}
+    try{const j=JSON.parse(await f.text());if(!Array.isArray(j.files)||!Array.isArray(j.categories)) throw new Error(t('settings.notValidBackup'));
+      if(!confirm(t('settings.confirmRestore',j.files.length))) return;
+      S=migrate(j);save();d.close();resetUI(parseRoute());render();checkHealth();toast(t('settings.backupLoaded'),'ok')}
     catch(err){toast(err.message,'bad')}}});
-  d=dialog('Backup og indstillinger',[
-    h('p',{class:'muted',style:{marginTop:0}},'Dashboardet gemmer alt i data.json i samme mappe som hjælperen. Ved første ændring hver dag lægges en kopi i mappen backups (de seneste 30 dage beholdes).'),
+  d=dialog(t('settings.dialogTitle'),[
+    h('p',{class:'muted',style:{marginTop:0}},t('settings.body')),
     h('div',{class:'inl',style:{flexWrap:'wrap'}},
-      h('button',{class:'btn',onClick:()=>{const a=h('a',{href:URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})),download:'file-hub-backup-'+new Date().toISOString().slice(0,10)+'.json'});a.click()}},'Hent backup'),
-      h('button',{class:'btn',onClick:()=>file.click()},'Indlæs backup…'),file,
-      h('button',{class:'btn',onClick:()=>{d.close();tagManager()}},'Tags og farver…'),
-      h('button',{class:'btn',onClick:()=>{if(confirm('Nulstille “senest åbnet” og “mest brugte” for alle filer?')){S.files.forEach(f=>{f.opens=0;delete f.lastOpened});save();d.close();render()}}},'Nulstil brugsstatistik'))],
-    [h('span',{class:'spacer'}),h('button',{class:'btn pri',onClick:()=>d.close()},'Luk')]);
+      h('button',{class:'btn',onClick:()=>{const a=h('a',{href:URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})),download:'file-hub-backup-'+new Date().toISOString().slice(0,10)+'.json'});a.click()}},t('settings.getBackup')),
+      h('button',{class:'btn',onClick:()=>file.click()},t('settings.loadBackup')),file,
+      h('button',{class:'btn',onClick:()=>{d.close();tagManager()}},t('settings.tagsAndColors')),
+      h('button',{class:'btn',onClick:()=>{if(confirm(t('settings.confirmResetStats'))){S.files.forEach(f=>{f.opens=0;delete f.lastOpened});save();d.close();render()}}},t('settings.resetStats')))],
+    [h('span',{class:'spacer'}),h('button',{class:'btn pri',onClick:()=>d.close()},t('common.close'))]);
 }
 
 /* ---------- Hurtigsøg ---------- */
 function palette(){
   closeMenu();
-  const inp=h('input',{class:'pal-in',placeholder:'Skriv for at finde en fil eller hub'}),list=h('div',{class:'pal-list'});
-  const d=h('dialog',{class:'pal'},inp,list,h('div',{class:'pal-hint'},'↑↓ vælg    Enter åbn    Shift+Enter vis i mappe    Esc luk'));
+  const inp=h('input',{class:'pal-in',placeholder:t('pal.placeholder')}),list=h('div',{class:'pal-list'});
+  const d=h('dialog',{class:'pal'},inp,list,h('div',{class:'pal-hint'},t('pal.hint')));
   let items=[],sel=0;
   const run=(it,rev)=>{d.close();if(it.kind==='cat') location.hash='#/hub/'+it.c.id;else openFile(it.f,rev)};
   const mark=()=>[...list.children].forEach((n,i)=>{n.classList.toggle('on',i===sel);if(i===sel) n.scrollIntoView({block:'nearest'})});
   const draw=()=>{
     list.replaceChildren(...(items.length?items.map((it,i)=>h('div',{class:'pal-i'+(i===sel?' on':''),onClick:()=>run(it,false),onMouseenter:()=>{sel=i;mark()}},
       it.kind==='cat'?h('span',{style:{fontSize:'22px',width:'34px',textAlign:'center'}},it.c.icon):typeBadge(it.f),
-      h('div',{class:'mt'},h('b',{},it.kind==='cat'?it.c.name:it.f.title),h('small',{},it.kind==='cat'?'Hub':catOf(it.f).name+'  '+it.f.path)),
-      h('span',{class:'k'},it.kind==='cat'?'Gå til':'Åbn'))):[h('div',{class:'hint',style:{padding:'14px'}},'Ingen match')]));
+      h('div',{class:'mt'},h('b',{},it.kind==='cat'?it.c.name:it.f.title),h('small',{},it.kind==='cat'?t('lib.hub'):catOf(it.f).name+'  '+it.f.path)),
+      h('span',{class:'k'},it.kind==='cat'?t('pal.goTo'):t('card.open')))):[h('div',{class:'hint',style:{padding:'14px'}},t('pal.noMatch'))]));
   };
   const calc=()=>{
     const q=inp.value.trim().toLowerCase(),res=[];
@@ -1471,10 +2198,10 @@ addEventListener('dragenter',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].in
 addEventListener('dragleave',()=>{dragDepth=Math.max(0,dragDepth-1);if(!dragDepth) document.body.classList.remove('dragging')});
 addEventListener('dragover',e=>e.preventDefault());
 addEventListener('drop',e=>{e.preventDefault();dragDepth=0;document.body.classList.remove('dragging');
-  if(S&&e.dataTransfer.files.length){toast('Browsere må ikke se, hvor en fil ligger. Vælg filerne i Windows-dialogen i stedet.','warn');pickFlow({category:UI.cat||''})}});
+  if(S&&e.dataTransfer.files.length){toast(t('dnd.browsersCantSeePath'),'warn');pickFlow({category:UI.cat||''})}});
 
 /* ================= Manual ================= */
-const MANUAL_HTML=`
+const MANUAL_HTML_DA=`
 <h2 id="m-start">Kom i gang</h2>
 <p>File Command Center samler adgangen til alle dine filer (dokumenter, mapper, links, hvad som helst) ét sted, uanset hvor de ligger. Dashboardet gemmer kun <b>stien</b> til filerne. Dine filer flyttes eller kopieres ikke.</p>
 <p class="muted sm">Manualen er sidst opdateret 21. september 2026. Knappen "Udskriv eller gem som PDF" øverst til højre giver en udskrift uden sidebaren.</p>
@@ -1695,13 +2422,234 @@ const MANUAL_HTML=`
 <tr><td>21. september 2026</td><td>Overblik viser alle filer som kort, med favoritter først og grupperet efter hub.</td></tr>
 </table>
 `;
+const MANUAL_HTML_EN=`
+<h2 id="m-start">Getting started</h2>
+<p>File Command Center brings together access to all your files (documents, folders, links, anything at all) in one place, wherever they live. The dashboard only stores the <b>path</b> to each file. Your files are never moved or copied.</p>
+<p class="muted sm">This manual was last updated 22 September 2026. The "Print or save as PDF" button in the top right gives you a printout without the sidebar.</p>
+<h3>Starting and stopping</h3>
+<ol>
+<li>The folder needs three files: <code>index.html</code>, <code>dashboard-server.ps1</code> and <code>start-dashboard.bat</code>. The file <code>data.json</code> and the <code>backups</code> folder are created automatically.</li>
+<li>Double-click <code>start-dashboard.bat</code>. A black window opens (the helper), and the dashboard opens in your browser at <code>http://localhost:8787</code>.</li>
+<li>Leave the black window open while you use the dashboard. Close it to stop.</li>
+</ol>
+<div class="note">Don't open <code>index.html</code> by double-clicking it directly. The page needs to be opened via the helper, otherwise it can neither save nor open files.</div>
+<h3>Why a helper?</h3>
+<p>A browser isn't allowed to launch programs or see where files are on your PC. The small helper does that for the dashboard. It only listens on your own PC, can only open paths you've added to the dashboard yourself, and never opens program files such as .exe, .bat, .cmd and .ps1.</p>
+<h3>Updating the files</h3>
+<p>Replace the files in the folder. If only <code>index.html</code> has changed, reloading the page (F5) is enough. If <code>dashboard-server.ps1</code> has changed, close the black window and start <code>start-dashboard.bat</code> again.</p>
+<h3>Sample data</h3>
+<p>The first time you run it, four sample hubs are created: Affaldsdata, Økonomi, Stamdata and Diverse. You can rename, change or delete them freely.</p>
+
+<h2 id="m-begreber">Concepts</h2>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>File</td><td>An entry in the dashboard with a path, name, hub, tags and optionally a description and deadline. It can also be a folder or a link.</td></tr>
+<tr><td>Hub</td><td>A group with a color and icon and its own page: shortcuts, notes, deadlines and a file list. Each file can belong to one hub. To split a hub into smaller groups, use tags.</td></tr>
+<tr><td>Tag</td><td>A free-form label. A file can have several tags, and tags are used as filter buttons.</td></tr>
+<tr><td>Favorite (★)</td><td>A pinned file. Favorites are listed first.</td></tr>
+<tr><td>Shortcut</td><td>The word is used in two places. On a hub's page, "Shortcuts" are the hub's favorites shown as buttons. In the file picker, a shortcut is a saved folder (📌).</td></tr>
+<tr><td>Archive</td><td>Hides a file from everyday view without deleting the entry.</td></tr>
+<tr><td>Deadline</td><td>A date on a file, shown on the Overview, on the card and on the hub's page.</td></tr>
+<tr><td>The helper</td><td>The black window that runs while you use the dashboard.</td></tr>
+</table>
+
+<h2 id="m-arbejdsgang">A typical workflow</h2>
+<ol>
+<li><b>Create a hub</b> for an area, e.g. Waste data (<b>Add → New hub…</b>).</li>
+<li><b>Add the files</b> with <b>Add → Pick files…</b> (or Scan folders…). Choose the hub and optionally write shared tags in the dialog.</li>
+<li><b>Fine-tune with Select:</b> press ☑ Select, select the files that belong together, and use <b>Add tag…</b>.</li>
+<li><b>Pin</b> the files you use daily with ☆. They become shortcuts at the top of the hub.</li>
+<li><b>Set deadlines</b> on files for recurring tasks (Edit…).</li>
+<li><b>Everyday use:</b> press <kbd>Ctrl</kbd>+<kbd>K</kbd>, type a few letters, and press Enter. Or open the file from the Overview or the hub.</li>
+<li><b>Clean up:</b> press "Check files", fix the red paths, and archive what you no longer use.</li>
+</ol>
+
+<h2 id="m-overblik">Overview</h2>
+<p>The front page gives you status and access to everything from one place.</p>
+<ul>
+<li><b>The status bar</b> at the top tells you whether all files can be found. Below it is one field per active file. The color shows the status (see the <a href="#/help" onclick="return false">File status</a> section), and the thin line under the field has the hub's color. Click a field to edit the file, e.g. to fix a path.</li>
+<li><b>Hubs</b> are shown as large tiles with the number of files, how many are missing, and the hub's most-used tags. Click one to go to the hub.</li>
+<li><b>Deadlines</b> and <b>Needs attention</b> only show when there's something in them. "Needs attention" shows files that cannot be found.</li>
+<li><b>All files</b> is shown as cards. Favorites come first, then the cards are grouped by hub in the same order as the sidebar. The color on the top edge of the card shows the hub. The buttons above the cards filter to one hub, and the dropdown chooses the sort order within each group. "Filters and tags" takes you to the full library. Clicking a tag on a card opens the library with that tag selected.</li>
+<li><b>Recently opened</b> and <b>Most used</b> sit at the bottom and are built from the files you open via the dashboard.</li>
+</ul>
+<h3>The sidebar</h3>
+<p>Overview, All files, Favorites, Archive, Manual, and below that your hubs. The number next to each hub is the count of active files. Press + next to the heading to create a new hub. Hover over a hub and press ✎ to edit it. At the bottom you can see whether the helper is running, whether things are saved, and switch between dark and light theme.</p>
+
+<h2 id="m-tilfoej">Adding files and folders</h2>
+<p>Press <b>Add</b> in the top right. You can choose between:</p>
+<table>
+<tr><th>Option</th><th>Used for</th></tr>
+<tr><td>Pick files…</td><td>Browse to files and pick several at once (see <a href="#/help" onclick="return false">The file picker</a>).</td></tr>
+<tr><td>Add folders…</td><td>Point to one or more folders that should open in File Explorer when you click them.</td></tr>
+<tr><td>Scan folders…</td><td>Find all files in one or more folders. You can include subfolders. At most 500 files per folder are shown.</td></tr>
+<tr><td>Paste paths or links…</td><td>Paste one path or link per line. In File Explorer you can select several files and choose "Copy as path" (Shift + right-click). Quotation marks are removed automatically.</td></tr>
+<tr><td>Add manually…</td><td>Fill in every field yourself, e.g. for a single link. If the path already exists, the dashboard asks before adding it again.</td></tr>
+<tr><td>New hub…</td><td>Create a new hub.</td></tr>
+</table>
+<h3>Adding many files at once</h3>
+<p>Once you've picked, scanned or pasted several files, you get a combined dialog. Choose <b>hub</b> and <b>tags for all</b> at the top, optionally fix the names, and deselect the files you don't want included ("Select all" and "Deselect all" help with this). Files that already exist in the dashboard are marked "already exists" and are deselected by default.</p>
+<h3>Links</h3>
+<p>You can also add links, e.g. to SharePoint or OneDrive. Links to Excel files are opened in Excel where possible; if that doesn't work, use "Open in browser" in the ⋯ menu. Links are not checked for whether they exist.</p>
+<div class="note">If you drag files onto the page, the browser can't see where they are on disk. The dashboard opens the file picker instead.</div>
+
+<h2 id="m-vaelger">The file picker</h2>
+<p>The file picker is the dashboard's own version of "Open file". It can show drives, folders and network paths.</p>
+<ul>
+<li><b>Buttons at the top:</b> "This PC" shows your drives. Documents, Desktop, Downloads and OneDrive are shown if they exist.</li>
+<li><b>Navigation:</b> ← goes back to the folder you came from (Alt + ←). ↑ goes up one folder (Backspace). The path under the address field can be clicked at each step. You can also type or paste a path into the address field and press Enter, e.g. <code>&#92;&#92;server&#92;share&#92;folder</code> for a network drive.</li>
+<li><b>Selecting several folders:</b> when you're picking folders (for scanning or to add them), each folder has a checkbox. Click the box to select the folder, and click the name itself to go into it. Your checks stay in place as you browse, so you can select folders across different levels. "Select all subfolders" checks every folder in the one you're in. With nothing checked, the folder you're in is selected.</li>
+<li><b>Selecting files:</b> click a file to select it, click again to deselect it. "Select all in the folder" selects every file shown. All file types are shown by default. Check "Show only Excel and CSV files" to narrow the list.</li>
+<li><b>Save a folder as a shortcut:</b> press "＋ Save this folder as a shortcut" while you're in a folder. It gets a 📌 button next to the others and can be removed again with × or by pressing the "★ Saved as shortcut" button.</li>
+<li>The file picker remembers the folder you used last.</li>
+<li>"Try Windows dialog" opens the regular Windows dialog instead.</li>
+</ul>
+
+<h2 id="m-organiser">Organizing: hubs, tags and deadlines</h2>
+<h3>Hubs</h3>
+<p>Each file can belong to one <b>hub</b>, e.g. Waste data or Finance. A hub has its own page with:</p>
+<ul>
+<li>a description and key numbers (file count, favorites, missing files, last opened),</li>
+<li><b>Shortcuts</b>: the hub's favorites as large buttons that open the file with one click (up to 14),</li>
+<li>the nearest deadlines,</li>
+<li><b>Notes</b>: a free text field that saves automatically,</li>
+<li>the hub's files at the bottom, with the same filters as the library,</li>
+<li>the <b>Edit hub</b> (name, color and description) and <b>New file in hub</b> buttons.</li>
+</ul>
+<p>You can choose a name, icon, color and description, and move a hub up and down the list (↑ and ↓ in the edit dialog). If you delete a hub, the files are kept but lose their hub. Files without a hub are only shown under "All files", where the hub is listed as "No hub". To split a hub into smaller groups, use tags.</p>
+<h3>Tags</h3>
+<p>Tags are written in the edit dialog (press Enter after each tag). Existing tags are suggested, and upper/lower case is merged, so "Monthly" and "monthly" become one tag. Tags become filter buttons in the library.</p>
+<h3>Editing a file</h3>
+<p>Press ⋯ on a card and choose "Edit…", or click a field in the status bar on the Overview. You can change:</p>
+<ul>
+<li><b>Path or link.</b> Type or paste a path, or use "Pick file…" and "Folder…".</li>
+<li><b>Name</b> and <b>hub</b>.</li>
+<li><b>Status</b>: Active or Archive.</li>
+<li><b>Tags</b> and <b>description</b>.</li>
+<li><b>Deadline</b> (date) and a text saying what the deadline is.</li>
+<li><b>Pin as favorite.</b></li>
+</ul>
+<p>"Remove" in the bottom left removes the entry from the dashboard (not the file itself).</p>
+<h3>Editing several files at once</h3>
+<p>Press <b>☑ Select</b> in the toolbar in the library or on a hub page. Each file then gets a checkbox, and clicking a card selects it instead of opening the file. Hold <kbd>Shift</kbd> to select every file between two clicks. Press <b>Select all</b> to select every file currently shown.</p>
+<p>An action bar appears at the bottom with these choices: <b>Add tag…</b> (one or more tags for all selected), <b>Remove tag…</b>, <b>Hub…</b> (move to another hub), <b>Favorite</b>, <b>Archive</b> and <b>Remove…</b> (removes the entries from the dashboard, not the files themselves). Press <b>Done</b> or <kbd>Esc</kbd> to leave selection mode.</p>
+<div class="note">Tip: filter first, e.g. by a tag or a search, then press "Select all". That lets you tag every matching file in one go. Selected files that a filter hides are still counted, and the bar shows how many are hidden.</div>
+<h3>Favorites</h3>
+<p>Press ☆ on a card to make the file a favorite (★). Favorites are listed first on the Overview and in the lists, and are shown as shortcuts on the hub's page.</p>
+<h3>Deadlines</h3>
+<p>While editing you can set a deadline and write what it's for. Deadlines are shown on the Overview, on the card and on the hub's page. The deadline turns yellow when there are 7 days or fewer left, and red once it's passed.</p>
+<h3>Archive</h3>
+<p>Archive files you're not using right now but want to keep. Archived files disappear from the Overview, the hub's counts, quick search and the status row, but keep their hub, tags and description. Find them under "Archive" in the sidebar. Choose "Move to archive" or "Restore from archive" in the ⋯ menu on the card.</p>
+
+<h2 id="m-find">Finding and filtering</h2>
+<h3>The library</h3>
+<p>Under "All files" and on a hub's page you can:</p>
+<ul>
+<li>search by name, path, tags, description and hub,</li>
+<li>switch between <b>Active</b>, <b>Archive</b> and <b>All</b>,</li>
+<li>show only <b>favorites</b>, or only files that are <b>missing</b> (the button only shows when a file is missing),</li>
+<li>choose <b>hub</b> and <b>tags</b> with filter buttons (the hub buttons show under "All files"). The number next to each tag shows how many files remain,</li>
+<li>switch between "Match: all selected" and "at least one selected" when several tags are chosen,</li>
+<li>sort by recently used, name, most used, last modified (file), recently added or deadline. Favorites always come first,</li>
+<li>choose to view as <b>Cards</b> or <b>List</b>,</li>
+<li>press <b>☑ Select</b> to select several files and edit them together (see "Editing several files at once" under Organizing),</li>
+<li>press "Clear filters" to reset.</li>
+</ul>
+<h3>Quick search</h3>
+<p>Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (or <kbd>/</kbd> when you're not typing in a field). Type a few letters, use ↑↓ and press Enter to open. <kbd>Shift</kbd>+<kbd>Enter</kbd> shows the file in File Explorer. With no text, your hubs, favorites and recently opened files are shown. Hubs can also be selected, taking you straight to them.</p>
+
+<h2 id="m-aabn">Opening files and folders</h2>
+<p>Click the card's title or icon, the <b>Open</b> button, or a shortcut button. The file opens in the program Windows has associated with that file type (typically Excel). Folders open in File Explorer. After opening, the helper tries to bring the Excel or File Explorer window in front of the browser.</p>
+<h3>The ⋯ menu on a card</h3>
+<table>
+<tr><th>Option</th><th>Effect</th></tr>
+<tr><td>Open</td><td>Opens the file or folder.</td></tr>
+<tr><td>Show in folder</td><td>Opens File Explorer with the file selected. For links this option is called "Open in browser". Not available for folders.</td></tr>
+<tr><td>Copy path</td><td>Copies the path to the clipboard.</td></tr>
+<tr><td>Edit…</td><td>Change path, name, hub, tags, description, deadline and status.</td></tr>
+<tr><td>Favorite / Archive</td><td>Toggles the status.</td></tr>
+<tr><td>Remove from dashboard</td><td>Deletes the entry (not the file itself). You're asked to confirm first.</td></tr>
+</table>
+
+<h2 id="m-status">File status</h2>
+<p>The dashboard checks the files when the page opens, every 5 minutes (while the tab is visible) and when you press <b>Check files</b>. The check also shows when the file was last modified, and how big it is.</p>
+<table>
+<tr><th>Color</th><th>Meaning</th></tr>
+<tr><td>Green</td><td>The file or folder exists.</td></tr>
+<tr><td>Red</td><td>The file was not found. It has been moved, renamed or deleted. Fix the path via "Edit…" or "Fix path".</td></tr>
+<tr><td>Yellow</td><td>No response within about 6 seconds. Typically a network drive that isn't connected.</td></tr>
+<tr><td>Blue</td><td>Online link. Not checked.</td></tr>
+<tr><td>Gray</td><td>Not checked yet.</td></tr>
+</table>
+
+<h2 id="m-data">Data and backups</h2>
+<ul>
+<li><b>Where:</b> everything is saved in <code>data.json</code> in the same folder as the helper. Changes are saved automatically a moment after you make them. "Saved" is shown at the bottom of the sidebar. This is also where your hubs and their notes, saved folder shortcuts, and settings (theme, view and sort order) live.</li>
+<li><b>Daily:</b> on the day's first change, a copy of the old <code>data.json</code> is placed in the <code>backups</code> folder (<code>data-YYYYMMDD.json</code>). The last 30 are kept. The copy therefore shows the state from before that day's changes.</li>
+<li><b>Before a deletion:</b> if saving would result in fewer files than before, a copy is placed in <code>backups</code> first, as <code>gemt-foer-sletning-…</code> ("saved-before-deletion"). The last 20 are kept.</li>
+<li><b>Manually:</b> "Backup" at the bottom of the sidebar has "Get backup" (a .json file), "Load backup…" (replaces everything in the dashboard, and you're asked to confirm first) and "Reset usage statistics" (resets recently opened and most used).</li>
+<li><b>Restoring a copy:</b> close the helper, copy a file from <code>backups</code> over <code>data.json</code>, and start again. Or use "Load backup…".</li>
+<li><b>Moving to another PC:</b> copy the whole folder including <code>data.json</code>. The paths need to exist on the new PC to show green.</li>
+</ul>
+<div class="note">If you use the dashboard from several folders or several PCs, each has its own <code>data.json</code>. If you've recently moved the files to a new folder and are missing your data, look for <code>data.json</code> in the old folder.</div>
+
+<h2 id="m-genvejstaster">Keyboard shortcuts</h2>
+<table>
+<tr><th>Key</th><th>Effect</th></tr>
+<tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> or <kbd>/</kbd></td><td>Open quick search.</td></tr>
+<tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></td><td>Select and open in quick search.</td></tr>
+<tr><td><kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>Show the selected file in File Explorer.</td></tr>
+<tr><td><kbd>Esc</kbd></td><td>Close a dialog, quick search or menu, or leave selection mode.</td></tr>
+<tr><td><kbd>Shift</kbd>+click</td><td>In selection mode: select a whole range between two files.</td></tr>
+<tr><td><kbd>Alt</kbd>+<kbd>←</kbd></td><td>Back in the file picker.</td></tr>
+<tr><td><kbd>Backspace</kbd></td><td>Up one folder in the file picker.</td></tr>
+<tr><td><kbd>Enter</kbd></td><td>Add a tag, or go to the path in the file picker's address field.</td></tr>
+</table>
+
+<h2 id="m-fejl">Troubleshooting</h2>
+<table>
+<tr><th>Problem</th><th>Solution</th></tr>
+<tr><td>The page says "The helper is not responding", or you see "NetworkError" and "Could not save"</td><td>The helper isn't running. Start <code>start-dashboard.bat</code>. Don't reload the page until it's running, then make a small change so everything gets saved.</td></tr>
+<tr><td>The black window says the port is in use</td><td>The dashboard is probably already running. Open <code>http://localhost:8787</code> in your browser.</td></tr>
+<tr><td>The black window opens and closes again with an error about scripts</td><td>Your PC may be blocking PowerShell scripts. This can be a setting your IT department controls.</td></tr>
+<tr><td>The file doesn't open</td><td>Is the status dot red or yellow? Then the file doesn't exist, or the drive isn't connected. Otherwise, read the error text in the browser and in the black window, where it says "Åbner: …" ("Opening: …") for each file.</td></tr>
+<tr><td>Excel or the folder opens, but sits behind the browser</td><td>The helper tries to bring the window forward and writes to the black window whether it succeeded. If it didn't, you can find the window on the taskbar.</td></tr>
+<tr><td>The file picker isn't showing what you're looking for</td><td>Clear the "Show only Excel and CSV files" checkbox if it's checked. Hidden and system files aren't shown. Type or paste a network path into the address field.</td></tr>
+<tr><td>A file is "gone"</td><td>Check the filters (set Active/Archive/All to "All"), and see if it's in the Archive. Otherwise look in <code>backups</code>.</td></tr>
+<tr><td>The "Try Windows dialog" button opens nothing</td><td>Windows' regular dialog can occasionally fail to appear when started from the helper. Use the dashboard's own file picker, which doesn't depend on it.</td></tr>
+<tr><td>The file picker says "The folder does not exist or cannot be reached"</td><td>Check the spelling, and that the network drive is connected. Try opening the path in File Explorer.</td></tr>
+<tr><td>A click doesn't open the file, but selects it instead</td><td>You're in selection mode. Press "Done" or <kbd>Esc</kbd>.</td></tr>
+<tr><td>Two buttons for the same folder in the file picker</td><td>Hover over the button to see the path. If they differ, they're two different folders.</td></tr>
+</table>
+
+<h2 id="m-graenser">Limitations and security</h2>
+<ul>
+<li>The dashboard only stores paths and your information about the files. It does not show the files' content.</li>
+<li>A file can only belong to one hub, and hubs can't have sub-hubs. Use tags for finer-grained grouping.</li>
+<li>It's built for Windows and for one user. Use only one browser window at a time, or one can overwrite the other.</li>
+<li>The helper can only be reached from your own PC. It only opens paths that have been added to the dashboard, and never program files.</li>
+<li>Changes to files outside the dashboard (moving, renaming) are detected on the next check and shown as a red status.</li>
+</ul>
+
+<h2 id="m-aendringer">Changes</h2>
+<p>Latest changes, newest first.</p>
+<table>
+<tr><th>Date</th><th>Change</th></tr>
+<tr><td>22 September 2026</td><td>The dashboard is now called File Command Center and handles all file types, not just Excel and CSV: the file picker and Scan folders now show everything by default, and the preview pane now also works on images, PDFs and text files. The preview pane can be dragged wider or narrower at its left edge.</td></tr>
+<tr><td>21 September 2026</td><td>Categories and hubs have been merged into hubs. Every hub has its own page with shortcuts and notes. Old categories have become hubs.</td></tr>
+<tr><td>21 September 2026</td><td>Selection mode: add or remove tags, change hub, favorite, archive and remove for several files at once.</td></tr>
+<tr><td>21 September 2026</td><td>The file picker can select several folders, and Scan folders can scan several folders at once.</td></tr>
+<tr><td>21 September 2026</td><td>The file picker has back and up buttons, path navigation and saved folder shortcuts. Folders can be added as entries and opened in File Explorer.</td></tr>
+<tr><td>21 September 2026</td><td>The Overview shows all files as cards, with favorites first and grouped by hub.</td></tr>
+</table>
+`;
 function helpView(){
-  const doc=h('article',{class:'manual'});doc.innerHTML=MANUAL_HTML;
-  doc.querySelectorAll('a[href="#/help"]').forEach(a=>{const t=a.textContent.toLowerCase();const map={'status på filerne':'m-status','filvælgeren':'m-vaelger'};const id=map[t];if(id) a.addEventListener('click',e=>{e.preventDefault();document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'})})});
+  const doc=h('article',{class:'manual'});doc.innerHTML=lang()==='en'?MANUAL_HTML_EN:MANUAL_HTML_DA;
+  doc.querySelectorAll('a[href="#/help"]').forEach(a=>{const linkText=a.textContent.toLowerCase();const map={'status på filerne':'m-status','filvælgeren':'m-vaelger','file status':'m-status','the file picker':'m-vaelger'};const id=map[linkText];if(id) a.addEventListener('click',e=>{e.preventDefault();document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'})})});
   const go=id=>document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
-  const toc=h('nav',{class:'toc'},h('b',{},'Indhold'),...[...doc.querySelectorAll('h2[id]')].map(x=>h('button',{class:'crumb',onClick:()=>go(x.id)},x.textContent)));
+  const toc=h('nav',{class:'toc'},h('b',{},t('manual.toc')),...[...doc.querySelectorAll('h2[id]')].map(x=>h('button',{class:'crumb',onClick:()=>go(x.id)},x.textContent)));
   return[
-    h('div',{class:'top'},h('div',{},h('div',{class:'sub'},'Hjælp'),h('h1',{},'Manual')),h('div',{class:'spacer'}),h('button',{class:'btn',onClick:()=>print()},'Udskriv eller gem som PDF')),
+    h('div',{class:'top'},h('div',{},h('div',{class:'sub'},t('help.sub')),h('h1',{},t('nav.manual'))),h('div',{class:'spacer'}),h('button',{class:'btn',onClick:()=>print()},t('help.printOrSavePdf'))),
     h('div',{class:'manual-wrap'},toc,doc)
   ];
 }
@@ -1728,33 +2676,33 @@ async function installUpdate(){
   try{await api('/api/update/install')}
   catch(e){updateInstalling=false;updateError=e.message;render();return}
   // Installeren er nu startet af Windows (med sin egen UAC-/fremgangsdialog); appen lukker snart selv
-  showMessage('Opdaterer…','<p>Installeren er startet. Følg dialogen fra Windows, og genåbn File Command Center bagefter.</p>');
+  showMessage(t('upd.installingTitle'),t('upd.installingBody'));
 }
 function updateBanner(){
   if(updateInstalling){
     const pct=updateProgress?updateProgress.pct:0;
     return h('div',{class:'banner upd'},
-      h('div',{},'Henter opdatering '+UPDATE.version+'… '+pct+'%'),
+      h('div',{},t('upd.fetchingPct',UPDATE.version,pct)),
       h('div',{class:'upd-bar'},h('div',{class:'upd-fill',style:{width:pct+'%'}})),
-      updateError?h('div',{class:'muted sm',style:{color:'var(--bad)'}},updateError):h('div',{class:'muted sm'},'Windows beder snart om tilladelse til at installere.'));
+      updateError?h('div',{class:'muted sm',style:{color:'var(--bad)'}},updateError):h('div',{class:'muted sm'},t('upd.willAskPermission')));
   }
   return h('div',{class:'banner upd'},
-    h('div',{},'📦 Ny version tilgængelig: '+UPDATE.version),
+    h('div',{},t('upd.newVersionAvailable',UPDATE.version)),
     UPDATE.notes?h('div',{class:'muted sm',style:{margin:'4px 0',whiteSpace:'pre-wrap'}},UPDATE.notes.slice(0,300)):null,
     h('div',{class:'inl',style:{marginTop:'8px'}},
-      h('button',{class:'btn sm pri',onClick:installUpdate},'Opdater nu'),
-      h('button',{class:'btn sm',onClick:()=>window.open(UPDATE.url,'_blank')},'Se ændringer'),
-      h('button',{class:'btn sm',onClick:()=>{UPDATE=null;render()}},'Senere')));
+      h('button',{class:'btn sm pri',onClick:installUpdate},t('upd.installNow')),
+      h('button',{class:'btn sm',onClick:()=>window.open(UPDATE.url,'_blank')},t('upd.viewChanges')),
+      h('button',{class:'btn sm',onClick:()=>{UPDATE=null;render()}},t('upd.later'))));
 }
 
 async function init(){
-  if(location.protocol==='file:'){showMessage('Start hjælperen først','<p>Siden er åbnet direkte fra en fil. Den skal i stedet køre via den lille hjælper.</p><p>Dobbeltklik på <b>start-dashboard.bat</b> i mappen – så åbner dashboardet af sig selv på <b>http://localhost:8787</b>.</p>');return}
+  if(location.protocol==='file:'){showMessage(t('init.startHelperFirstTitle'),t('init.startHelperFirstBody'));return}
   try{const s=await api('/api/state');if(s&&Array.isArray(s.files)) S=migrate(s);else{S=defaultState();save()}}
-  catch(e){showMessage('Hjælperen svarer ikke','<p>Dashboardet kunne ikke få forbindelse til hjælperen ('+e.message+').</p><p>Dobbeltklik på <b>start-dashboard.bat</b>, og genindlæs siden.</p>');return}
+  catch(e){showMessage(t('init.helperNotRespondingTitle'),t('init.helperNotRespondingBody',e.message));return}
   resetUI(parseRoute());render();checkHealth();initPaneResize();
   setInterval(ping,15000);
   setInterval(()=>{if(!document.hidden) checkHealth()},5*60*1000);
-  setInterval(()=>{const c=$('#clock');if(c) c.textContent=new Date().toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})},20000);
+  setInterval(()=>{const c=$('#clock');if(c) c.textContent=new Date().toLocaleTimeString(dateLocale(),{hour:'2-digit',minute:'2-digit'})},20000);
   if(native){setTimeout(checkForUpdate,4000);setInterval(checkForUpdate,6*60*60*1000)}
 }
 init();

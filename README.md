@@ -20,6 +20,7 @@ Den oprindelige udgave. Dobbeltklik på `start-dashboard.bat` – den starter en
 - Åbner filer i det program, Windows har knyttet til dem, og blokerer altid programmer/scripts (`.exe`, `.ps1`, `.js` osv.).
 - Daglige backups af dine data, plus en ekstra backup hver gang en gemning ville fjerne filer.
 - Desktop-udgaven tjekker selv for nye versioner (GitHub Releases) og kan installere en opdatering med ét klik.
+- Dansk/engelsk: sprogknappen nederst i sidebaren skifter hele grænsefladen og manualen. Standard er dansk; vælges automatisk ud fra styresystemets sprog, før dine indstillinger er indlæst.
 
 ## Data
 
