@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSI-installer til File Command Center.
+  UpgradeCode må ALDRIG ændres - det er det, der lader en nyere version opdatere en ældre.
+  Byg med: wix build Package.wxs -arch x64 -ext WixToolset.UI.wixext -d PublishDir=..\publish -out FileCommandCenter.msi
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="File Command Center"
+           Manufacturer="File Command Center"
+           Version="1.0.0"
+           UpgradeCode="dc319aa0-1725-4cc3-8c86-3dbd4fb3a308"
+           Language="1033"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="En nyere version af File Command Center er allerede installeret." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="File Command Center">
+        <Directory Id="WebDir" Name="web" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppProgramMenuFolder" Name="File Command Center" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Component Id="AppExeComponent">
+        <File Id="AppExe" Source="$(var.PublishDir)\FileCommandCenter.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="WebFiles" Directory="WebDir">
+      <Component Id="WebIndexComponent">
+        <File Id="WebIndex" Source="$(var.PublishDir)\web\index.html" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="AppProgramMenuFolder">
+      <Shortcut Id="AppStartMenuShortcut"
+                Name="File Command Center"
+                Target="[INSTALLFOLDER]FileCommandCenter.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveAppProgramMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\FileCommandCenter" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="MainFeature" Title="File Command Center" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="WebFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+  </Package>
+</Wix>

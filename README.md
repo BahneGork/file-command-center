@@ -26,7 +26,11 @@ Dine data (`data.json` + `backups/`) gemmes lokalt og er **ikke** en del af dett
 - Desktop-udgaven: `%LOCALAPPDATA%\FileCommandCenter\`
 - Browser-udgaven: i samme mappe som `dashboard-server.ps1`
 
+## Installer
+
+En .msi til desktop-udgaven kan bygges fra `desktop/installer/`, se **[desktop/installer/README.md](desktop/installer/README.md)**. Installerer i `Program Files`, ingen ekstra afhængigheder.
+
 ## Ikke gjort endnu
 
-- Kodesignering og en rigtig installer til desktop-udgaven.
-- Se `desktop/README.md` for flere detaljer om, hvad der mangler.
+- **Kodesignering.** Installeren er usigneret, så Windows vil advare (SmartScreen/Defender). IT skal godkende eller signere den, før den bredt kan installeres på arbejdscomputere.
+- Se `desktop/README.md` og `desktop/installer/README.md` for flere detaljer om, hvad der mangler.

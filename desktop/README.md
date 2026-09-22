@@ -38,7 +38,7 @@ Distribute the contents of `publish/`: `FileCommandCenter.exe` **and the `web` f
 Use `--self-contained false` for a ~1 MB exe that needs the .NET 8 Desktop Runtime.
 
 ## Not done yet
-- Code signing and an installer (ask IT what they accept: e.g. sign with an internal certificate, install to Program Files).
+- Code signing — the installer (`installer/`) is unsigned, so Windows SmartScreen/Defender will warn. Ask IT what they accept (e.g. sign with an internal certificate).
 - Migrating existing data: copy the old `data.json` to `%LOCALAPPDATA%\FileCommandCenter\`. If you're moving from a build made before 22 September 2026, note the folder itself was also renamed from `ExcelCommandCenter` to `FileCommandCenter`.
 
 ## Third-party components
