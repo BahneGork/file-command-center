@@ -282,6 +282,9 @@ body.pane-dragging{cursor:col-resize;user-select:none}
 .toast{background:var(--panel2);border:1px solid var(--line2);border-left:4px solid var(--accent);border-radius:var(--r);padding:9px 14px;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .toast.ok{border-left-color:var(--ok)}.toast.bad{border-left-color:var(--bad)}
 .banner{border:1px solid var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--panel));border-radius:var(--r);padding:10px 14px;margin-bottom:16px}
+.banner.upd{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--panel))}
+.upd-bar{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin-top:8px}
+.upd-fill{height:100%;background:var(--ok);transition:width .2s}
 dialog.pal{margin:11vh auto 0;width:min(660px,94vw)}
 .pal-in{width:100%;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:8px 8px 0 0!important;padding:16px 18px!important;font-size:17px;background:var(--panel)!important}
 .pal-in:focus{outline:none}
@@ -338,6 +341,7 @@ const TYPES={excel:['X','#1d7a46','#fff'],'excel-url':['X','#1d7a46','#fff'],csv
 let S=null;                 // gemmes i data.json via hjælperen
 const H={};                 // filstatus fra hjælperen: sti -> {exists,size,modified,timeout}
 let helperOnline=true,dirty=false,saveTimer=null,savePromise=Promise.resolve(),saveMsg='';
+let UPDATE=null,updateProgress=null,updateInstalling=false,updateError='';
 const UI={q:'',tags:new Set(),tagMode:'and',status:'aktiv',fav:false,cat:'',problem:false,allTags:false,select:false,sel:new Set(),order:[],last:null,pv:null};
 
 function defaultState(){return{version:1,categories:[
@@ -411,7 +415,10 @@ function updateTagList(){$('#taglist').replaceChildren(...allTags().map(t=>h('op
 /* Desktop-app: i selve appen (WebView2) går kald via beskeder i stedet for http */
 const native=window.chrome&&window.chrome.webview;
 const pendingCalls=new Map();let callId=0;
-if(native) native.addEventListener('message',e=>{const p=pendingCalls.get(e.data.id);if(!p) return;pendingCalls.delete(e.data.id);e.data.ok?p.res(e.data.data):p.rej(new Error(e.data.error))});
+if(native) native.addEventListener('message',e=>{
+  if(e.data.event){onNativeEvent(e.data.event,e.data.data);return}
+  const p=pendingCalls.get(e.data.id);if(!p) return;pendingCalls.delete(e.data.id);e.data.ok?p.res(e.data.data):p.rej(new Error(e.data.error))
+});
 const nativeCall=(path,body)=>new Promise((res,rej)=>{const id=++callId;pendingCalls.set(id,{res,rej});native.postMessage({id,path,body:body===undefined?null:body})});
 async function api(path,body){
   if(native) return nativeCall(path,body);
@@ -537,6 +544,7 @@ function render(){
   updateTagList();renderSide();
   const r=parseRoute(),main=$('#main');main.replaceChildren();
   if(!helperOnline) main.append(h('div',{class:'banner'},'Hjælperen svarer ikke. Start start-dashboard.bat igen – ændringer gemmes, når den kører.'));
+  if(UPDATE) main.append(updateBanner());
   const hubCat=r.parts[0]==='hub'?cat(r.parts[1]):null;
   if(!r.parts.length) main.append(...homeView());
   else if(hubCat) main.append(...hubView(hubCat));
@@ -1704,6 +1712,41 @@ async function ping(){
   try{await api('/api/ping');if(!helperOnline){helperOnline=true;render()}}
   catch{if(helperOnline){helperOnline=false;render()}}
 }
+
+/* ================= Opdatering (kun desktop-appen) ================= */
+function onNativeEvent(name,data){
+  if(name==='update-progress'){updateProgress=data;render()}
+}
+async function checkForUpdate(){
+  if(!native) return;
+  try{const r=await api('/api/update/check');if(r.available){UPDATE=r;render()}}
+  catch{}
+}
+async function installUpdate(){
+  if(updateInstalling) return;
+  updateInstalling=true;updateProgress=null;updateError='';render();
+  try{await api('/api/update/install')}
+  catch(e){updateInstalling=false;updateError=e.message;render();return}
+  // Installeren er nu startet af Windows (med sin egen UAC-/fremgangsdialog); appen lukker snart selv
+  showMessage('Opdaterer…','<p>Installeren er startet. Følg dialogen fra Windows, og genåbn File Command Center bagefter.</p>');
+}
+function updateBanner(){
+  if(updateInstalling){
+    const pct=updateProgress?updateProgress.pct:0;
+    return h('div',{class:'banner upd'},
+      h('div',{},'Henter opdatering '+UPDATE.version+'… '+pct+'%'),
+      h('div',{class:'upd-bar'},h('div',{class:'upd-fill',style:{width:pct+'%'}})),
+      updateError?h('div',{class:'muted sm',style:{color:'var(--bad)'}},updateError):h('div',{class:'muted sm'},'Windows beder snart om tilladelse til at installere.'));
+  }
+  return h('div',{class:'banner upd'},
+    h('div',{},'📦 Ny version tilgængelig: '+UPDATE.version),
+    UPDATE.notes?h('div',{class:'muted sm',style:{margin:'4px 0',whiteSpace:'pre-wrap'}},UPDATE.notes.slice(0,300)):null,
+    h('div',{class:'inl',style:{marginTop:'8px'}},
+      h('button',{class:'btn sm pri',onClick:installUpdate},'Opdater nu'),
+      h('button',{class:'btn sm',onClick:()=>window.open(UPDATE.url,'_blank')},'Se ændringer'),
+      h('button',{class:'btn sm',onClick:()=>{UPDATE=null;render()}},'Senere')));
+}
+
 async function init(){
   if(location.protocol==='file:'){showMessage('Start hjælperen først','<p>Siden er åbnet direkte fra en fil. Den skal i stedet køre via den lille hjælper.</p><p>Dobbeltklik på <b>start-dashboard.bat</b> i mappen – så åbner dashboardet af sig selv på <b>http://localhost:8787</b>.</p>');return}
   try{const s=await api('/api/state');if(s&&Array.isArray(s.files)) S=migrate(s);else{S=defaultState();save()}}
@@ -1712,6 +1755,7 @@ async function init(){
   setInterval(ping,15000);
   setInterval(()=>{if(!document.hidden) checkHealth()},5*60*1000);
   setInterval(()=>{const c=$('#clock');if(c) c.textContent=new Date().toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})},20000);
+  if(native){setTimeout(checkForUpdate,4000);setInterval(checkForUpdate,6*60*60*1000)}
 }
 init();
 </script>

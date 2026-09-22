@@ -34,10 +34,26 @@ wix build Package.wxs -arch x64 -ext WixToolset.UI.wixext -d PublishDir=publish 
 `msiserver`-tjenesten (Windows Installer) skal køre - den er normalt sat til "Manual" og starter typisk af sig selv,
 men start den manuelt (`Start-Service msiserver`), hvis bygningen fejler med MSI 1631.
 
-## Ny version
+## Ny version / udgivelse (release)
 
-**`UpgradeCode` i `Package.wxs` (`dc319aa0-1725-4cc3-8c86-3dbd4fb3a308`) må aldrig ændres** - det er det, der lader en
-nyere version opdatere en ældre i stedet for at installere ved siden af den. Sæt kun `Version` op ved en ny udgivelse.
+Appen tjekker automatisk **GitHub Releases** på `BahneGork/file-command-center` for en nyere version (se
+`../UpdateCheck.cs`) og lader brugeren installere den direkte fra en bjælke i appen. Det kræver, at hver udgivelse
+har en `.msi` vedhæftet som "asset" - der er ingen CI her, så det gøres manuelt:
+
+1. **`UpgradeCode` i `Package.wxs` (`dc319aa0-1725-4cc3-8c86-3dbd4fb3a308`) må aldrig ændres** - det er det, der
+   lader en nyere version opdatere en ældre i stedet for at installere ved siden af den.
+2. Sæt **samme** nye versionsnummer to steder: `<Version>` i `../CommandCenter.csproj` og `Version=` i `Package.wxs`.
+3. Byg publish-outputtet og MSI'en som beskrevet ovenfor.
+4. Tag og udgiv med den vedhæftede MSI (tag skal starte med `v`, fx `v1.0.2` - det er det, appen sammenligner sin
+   egen version imod):
+   ```
+   gh release create v1.0.2 FileCommandCenter.msi --title "v1.0.2" --notes "Hvad der er ændret"
+   ```
+5. Kør git-commit/push af kildekoden (inkl. de to versionstal) separat - releasen er ikke bundet til et bestemt
+   commit på nogen særlig måde ud over tagget.
+
+Kun brugere, der allerede kører en version, som selv har opdateringstjekket i sig (denne eller nyere), vil se
+opdateringsbjælken. En bruger på en ældre, manuelt kopieret build skal opdatere manuelt én sidste gang.
 
 ## Ikke gjort endnu
 

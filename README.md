@@ -19,6 +19,7 @@ Den oprindelige udgave. Dobbeltklik på `start-dashboard.bat` – den starter en
 - Forhåndsvisningsrude (som i Stifinder) med regnearks-/CSV-tabel, billeder, PDF'er og tekst/kode-filer – bredden kan trækkes.
 - Åbner filer i det program, Windows har knyttet til dem, og blokerer altid programmer/scripts (`.exe`, `.ps1`, `.js` osv.).
 - Daglige backups af dine data, plus en ekstra backup hver gang en gemning ville fjerne filer.
+- Desktop-udgaven tjekker selv for nye versioner (GitHub Releases) og kan installere en opdatering med ét klik.
 
 ## Data
 

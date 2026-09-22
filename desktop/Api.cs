@@ -17,8 +17,8 @@ static class Api
         if (!Store.IsRegistered(p)) throw new ApiError("Stien er ikke registreret i dashboardet");
     }
 
-    // Returnerer svaret som JSON-tekst
-    public static async Task<string> Handle(string path, JsonElement body, IWin32Window owner)
+    // Returnerer svaret som JSON-tekst. onProgress bruges kun af /api/update/install til at rapportere downloadfremgang undervejs.
+    public static async Task<string> Handle(string path, JsonElement body, IWin32Window owner, Action<long, long>? onProgress = null)
     {
         switch (path)
         {
@@ -72,6 +72,22 @@ static class Api
             {
                 using var dlg = new FolderBrowserDialog { Description = "Vælg en mappe" };
                 return Json(new { path = dlg.ShowDialog(owner) == DialogResult.OK ? dlg.SelectedPath : null });
+            }
+
+            case "/api/update/check":
+            {
+                var info = await UpdateCheck.CheckAsync();
+                return info is null
+                    ? "{\"available\":false}"
+                    : Json(new { available = true, version = info.Version, notes = info.Notes, url = info.HtmlUrl, size = info.AssetSize });
+            }
+
+            case "/api/update/install":
+            {
+                var info = await UpdateCheck.CheckAsync();
+                if (info is null) throw new ApiError("Ingen opdatering fundet - prøv at tjekke igen.");
+                await UpdateCheck.DownloadAndLaunchInstallerAsync(info, (received, total) => onProgress?.Invoke(received, total));
+                return "{\"ok\":true}";
             }
 
             default:

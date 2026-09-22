@@ -17,12 +17,26 @@ there is **no local web server and no open network port**.
 - Lists folders / shows the Windows file and folder dialogs so the user can pick files.
 - Brings the Excel or Explorer window to the front after opening (uses `user32.dll` window APIs).
 - Only one instance can run per user (mutex).
+- Checks GitHub Releases for a newer version (a background HTTPS request, native C# only — see "Network access"
+  below) and, if you choose to update, downloads the installer and launches it, then closes itself. See
+  `UpdateCheck.cs` and `installer/README.md`.
 
 ## What it does not do
-- No listener on any port. Requests to anything other than its own page are blocked in the WebView (verified: fetches to the internet and to other localhost ports fail; navigation away is cancelled).
+- No listener on any port.
 - Developer tools, autofill and password saving are disabled in the WebView.
-- No admin rights needed; nothing is written outside the user's profile.
 - Links to `http(s)` sites open in the default browser; `ms-excel:ofe|u|http(s)://...` links open Excel.
+
+## Network access
+The page itself still cannot reach anything but its own files: requests to anything other than its own page are
+blocked in the WebView (verified: fetches to the internet and to other localhost ports fail; navigation away is
+cancelled). The **native app code**, outside the page, makes two kinds of outbound HTTPS requests, both only when
+checking for or installing an update:
+- `GET api.github.com/repos/.../releases/latest` (small JSON, no data about you or your files is sent).
+- A download of the `.msi` asset from that release, if you click "Opdater nu".
+
+Installing the downloaded update runs the standard Windows Installer, which asks for **admin rights (UAC)** — this
+is the one case where the app needs elevation and writes outside your profile (to `Program Files`). Nothing else
+the app does needs admin rights or leaves your profile.
 
 ## Requirements
 - Windows 10/11 x64 with the Microsoft Edge **WebView2 Runtime** (included with Microsoft 365 apps and Windows 11).

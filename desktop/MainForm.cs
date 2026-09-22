@@ -83,10 +83,33 @@ sealed class MainForm : Form
         var path = msg.GetProperty("path").GetString() ?? "";
         if (path == "/flushed") { flushed?.TrySetResult(); return; }
 
-        string reply;
-        try { reply = $"{{\"id\":{id},\"ok\":true,\"data\":{await Api.Handle(path, msg.GetProperty("body"), this)}}}"; }
-        catch (Exception ex) { reply = $"{{\"id\":{id},\"ok\":false,\"error\":{JsonSerializer.Serialize(ex.Message)}}}"; }
+        // Downloadfremgang sendes løbende som en "event"-besked, ikke som svar på et bestemt kald
+        Action<long, long>? onProgress = null;
+        if (path == "/api/update/install")
+        {
+            var lastPct = -1;
+            onProgress = (received, total) =>
+            {
+                var pct = total > 0 ? (int)(received * 100 / total) : 0;
+                if (pct == lastPct) return;
+                lastPct = pct;
+                web.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new { @event = "update-progress", data = new { received, total, pct } }));
+            };
+        }
+
+        string reply; var ok = true;
+        try { reply = $"{{\"id\":{id},\"ok\":true,\"data\":{await Api.Handle(path, msg.GetProperty("body"), this, onProgress)}}}"; }
+        catch (Exception ex) { ok = false; reply = $"{{\"id\":{id},\"ok\":false,\"error\":{JsonSerializer.Serialize(ex.Message)}}}"; }
         if (id > 0) web.CoreWebView2.PostWebMessageAsJson(reply);
+
+        // Installeren er startet i en separat proces; luk os selv ned (med normal gem-før-luk), så vores
+        // .exe ikke længere er låst, når installeren skal skrive de nye filer. Kort pause, så siden når at
+        // vise "Opdaterer…" først.
+        if (ok && path == "/api/update/install")
+        {
+            await Task.Delay(2000);
+            Close();
+        }
     }
 
     // Lukker først, når siden har gemt (ellers kan de sidste ændringer gå tabt)
