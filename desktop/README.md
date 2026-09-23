@@ -1,7 +1,7 @@
 # File Command Center (desktop)
 
-A Windows desktop version of the dashboard in `../index.html`. It replaces `dashboard-server.ps1`:
-there is **no local web server and no open network port**.
+A Windows desktop version of the dashboard in `../index.html`. It replaces the original PowerShell/browser-based
+version: there is **no local web server and no open network port**.
 
 ## What it is
 - A .NET 8 WinForms window hosting the dashboard with Microsoft Edge WebView2.
