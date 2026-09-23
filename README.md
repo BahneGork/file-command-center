@@ -28,9 +28,13 @@ Dine data (`data.json` + `backups/`) gemmes lokalt og er **ikke** en del af dett
 - Desktop-udgaven: `%LOCALAPPDATA%\FileCommandCenter\`
 - Browser-udgaven: i samme mappe som `dashboard-server.ps1`
 
-## Installer
+## Hent desktop-udgaven
 
-En .msi til desktop-udgaven kan bygges fra `desktop/installer/`, se **[desktop/installer/README.md](desktop/installer/README.md)**. Installerer i `Program Files`, ingen ekstra afhængigheder.
+Fra [Releases](https://github.com/BahneGork/file-command-center/releases/latest) - to former, samme app:
+- **Installer (.msi)** - installerer i `Program Files`, kræver admin, giver en Start-menu-genvej og selv-opdatering. Byg-instruktioner: **[desktop/installer/README.md](desktop/installer/README.md)**.
+- **Portabel (.zip)** - pak ud og kør `FileCommandCenter.exe` hvor som helst, ingen installation, ingen admin-rettigheder nødvendigt. `web`-mappen skal blive liggende ved siden af .exe'en. Opdateres ved selv at hente en ny .zip igen - den indbyggede "Opdater nu" er lavet til installer-udgaven og vil installere en separat kopi i `Program Files`, ikke opdatere den portable kopi i sig selv.
+
+Begge er selvstændige builds (intet .NET skal være installeret i forvejen).
 
 ## Ikke gjort endnu
 
