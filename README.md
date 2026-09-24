@@ -8,10 +8,6 @@ Findes i to udgaver, der deler den samme side (`index.html`):
 
 En rigtig Windows-app (.NET 8 + WebView2), uden nogen webserver eller åben port. Se **[desktop/README.md](desktop/README.md)** for byg-instruktioner, hvad appen gør på pc'en, og krav.
 
-## Browser/PowerShell-udgaven
-
-Den oprindelige udgave. Dobbeltklik på `start-dashboard.bat` – den starter en lille lokal hjælper (`dashboard-server.ps1`) på `http://localhost:8787`, som kun kan nås fra din egen pc, og åbner dashboardet i browseren.
-
 ## Funktioner
 
 - Filvælger, "Scan mapper…" og en indbygget mappebrowser til at tilføje filer og mapper.
