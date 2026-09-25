@@ -1635,10 +1635,8 @@ function previewToggle(){
 }
 async function fetchBytes(path,max){
   await flushSave();
-  if(native){const r=await api('/api/file',{path,max:max||0});return{u8:Uint8Array.from(atob(r.b64),c=>c.charCodeAt(0)),size:r.size}}
-  const r=await fetch('/api/file',{method:'POST',headers:{'Content-Type':'application/json','X-Dashboard':'1'},body:JSON.stringify({path,max:max||0})});
-  if(!r.ok){const e=await r.json().catch(()=>null);throw new Error((e&&e.error)||r.statusText)}
-  return{u8:new Uint8Array(await r.arrayBuffer()),size:+(r.headers.get('X-File-Size')||0)};
+  const r=await api('/api/file',{path,max:max||0});
+  return{u8:Uint8Array.from(atob(r.b64),c=>c.charCodeAt(0)),size:r.size};
 }
 /* -- minimal zip-læser (xlsx er en zip-fil) -- */
 function zipIndex(u8){
