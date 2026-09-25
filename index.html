@@ -1133,14 +1133,22 @@ const canonTag=t=>allTags().find(x=>x.toLowerCase()===t.toLowerCase())||t;
 function updateTagList(){$('#taglist').replaceChildren(...allTags().map(t=>h('option',{value:t})))}
 
 /* ================= API + gem ================= */
-/* Kald til appen går via WebView2-beskeder */
-const native=window.chrome&&window.chrome.webview;
+/* Kald til appen går via WebView2-beskeder. chrome.webview er ikke altid klar i samme tick som
+   siden selv begynder at køre, så vent på den i stedet for at antage den findes fra start. */
+let native=null;
 const pendingCalls=new Map();let callId=0;
-native.addEventListener('message',e=>{
-  if(e.data.event){onNativeEvent(e.data.event,e.data.data);return}
-  const p=pendingCalls.get(e.data.id);if(!p) return;pendingCalls.delete(e.data.id);e.data.ok?p.res(e.data.data):p.rej(new Error(e.data.error))
-});
-const nativeCall=(path,body)=>new Promise((res,rej)=>{const id=++callId;pendingCalls.set(id,{res,rej});native.postMessage({id,path,body:body===undefined?null:body})});
+async function ensureNative(){
+  while(!(window.chrome&&window.chrome.webview)) await new Promise(r=>setTimeout(r,20));
+  if(!native){
+    native=window.chrome.webview;
+    native.addEventListener('message',e=>{
+      if(e.data.event){onNativeEvent(e.data.event,e.data.data);return}
+      const p=pendingCalls.get(e.data.id);if(!p) return;pendingCalls.delete(e.data.id);e.data.ok?p.res(e.data.data):p.rej(new Error(e.data.error))
+    });
+  }
+  return native;
+}
+const nativeCall=async(path,body)=>{await ensureNative();return new Promise((res,rej)=>{const id=++callId;pendingCalls.set(id,{res,rej});native.postMessage({id,path,body:body===undefined?null:body})})};
 async function api(path,body){return nativeCall(path,body)}
 function setSaveState(m){saveMsg=m;const el=$('#savestate');if(el) el.textContent=m}
 function save(){dirty=true;setSaveState(t('save.saving'));clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,400)}
@@ -1149,7 +1157,7 @@ function flushSave(){
   savePromise=api('/api/state',S).then(()=>setSaveState(t('save.saved'))).catch(e=>{dirty=true;setSaveState(t('save.failed'));toast(t('save.failedWithMsg',e.message),'bad')});
   return savePromise;
 }
-addEventListener('pagehide',()=>{if(dirty&&S) native.postMessage({id:0,path:'/api/state',body:S})});
+addEventListener('pagehide',()=>{if(dirty&&S&&native) native.postMessage({id:0,path:'/api/state',body:S})});
 
 /* ================= Filstatus ================= */
 async function checkHealth(paths,manual){
