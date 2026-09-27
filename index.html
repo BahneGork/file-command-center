@@ -606,6 +606,14 @@ da:{
 'fld.description':'Beskrivelse',
 'fld.deadlineOptional':'Frist (valgfri)',
 'fld.whatIsDeadline':'Hvad er fristen?',
+'fld.recur':'Gentagelse',
+'fld.recurHint':'Når du trykker ✓ ved en frist, sættes den automatisk til den næste dato.',
+'recur.none':'Ingen',
+'recur.daily':'Dagligt',
+'recur.weekly':'Ugentligt',
+'recur.monthly':'Månedligt',
+'recur.markDoneTitle':'Udført - sæt næste dato',
+'recur.advanced':d=>'Næste dato sat til '+d,
 'fdlg.pinAsFavorite':'Fastgør som favorit',
 'imp.noValidPaths':'Ingen gyldige stier',
 'imp.addN':n=>'Tilføj '+t('noun.files',n),
@@ -961,6 +969,14 @@ da:{
 'fld.description':'Description',
 'fld.deadlineOptional':'Deadline (optional)',
 'fld.whatIsDeadline':'What is the deadline?',
+'fld.recur':'Recurrence',
+'fld.recurHint':'Pressing ✓ on a deadline automatically sets it to the next date.',
+'recur.none':'None',
+'recur.daily':'Daily',
+'recur.weekly':'Weekly',
+'recur.monthly':'Monthly',
+'recur.markDoneTitle':'Done - set next date',
+'recur.advanced':d=>'Next date set to '+d,
 'fdlg.pinAsFavorite':'Pin as favorite',
 'imp.noValidPaths':'No valid paths',
 'imp.addN':n=>'Add '+t('noun.files',n),
@@ -1074,7 +1090,7 @@ function defaultState(){return{version:1,categories:[
 function migrate(s){s.categories=Array.isArray(s.categories)?s.categories:[];s.categories.forEach(k=>{k.hub=true});s.files=Array.isArray(s.files)?s.files:[];
   s.settings=Object.assign({theme:'dark',view:'cards',sort:'recent',paneWidth:420,lang:'da'},s.settings||{});
   const ids=new Set();
-  s.files.forEach(f=>{f.tags=f.tags||[];f.status=f.status||'aktiv';f.opens=f.opens||0;f.category=f.category||'';if(!f.id||ids.has(f.id)) f.id=uid();ids.add(f.id)});return s}
+  s.files.forEach(f=>{f.tags=f.tags||[];f.status=f.status||'aktiv';f.opens=f.opens||0;f.category=f.category||'';f.recur=f.recur||'';if(!f.id||ids.has(f.id)) f.id=uid();ids.add(f.id)});return s}
 
 /* ================= Hjælpefunktioner ================= */
 function h(tag,props,...kids){
@@ -1105,6 +1121,14 @@ function daysUntil(due){const t=new Date();t.setHours(0,0,0,0);return Math.round
 function dueInfo(f){if(!f.due) return null;const n=daysUntil(f.due);let k='ok',tt;
   if(n<0){k='bad';tt=t('due.overdue',n)}else if(n===0){k='warn';tt=t('due.today')}else if(n===1){k='warn';tt=t('due.tomorrow')}else{k=n<=7?'warn':'ok';tt=t('due.inDays',n)}
   return{n,k,t:tt}}
+function nextDue(dateStr,recur){
+  const d=new Date(dateStr+'T00:00:00'),today=new Date();today.setHours(0,0,0,0);
+  const step=()=>{if(recur==='daily') d.setDate(d.getDate()+1);else if(recur==='weekly') d.setDate(d.getDate()+7);else d.setMonth(d.getMonth()+1)};
+  do{step()}while(d<=today);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function advanceRecurrence(f){f.due=nextDue(f.due,f.recur);save();render();toast(t('recur.advanced',fmtDate(f.due)),'ok')}
+function recurBtn(f){return f.recur?h('button',{class:'ib',title:t('recur.markDoneTitle'),onClick:e=>{e.stopPropagation();advanceRecurrence(f)}},'✓'):null}
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)}
 function fileType(p){
   const hx=H[p];if(hx&&hx.isDir) return 'folder';
@@ -1366,7 +1390,7 @@ function homeView(){
   const most=act.filter(f=>f.opens>0).sort((a,b)=>b.opens-a.opens).slice(0,6);
   const due=act.filter(f=>f.due).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,8);
   const urgent=[];
-  if(due.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.deadlines')),due.map(f=>{const d=dueInfo(f);return miniRow(f,h('span',{class:'x '+d.k},(f.dueLabel?f.dueLabel+': ':'')+d.t))})));
+  if(due.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.deadlines')),due.map(f=>{const d=dueInfo(f);return miniRow(f,[h('span',{class:'x '+d.k},(f.dueLabel?f.dueLabel+': ':'')+d.t),recurBtn(f)])})));
   if(bad.length) urgent.push(h('section',{class:'panel'},h('h3',{class:'h2'},t('home.needsAttention')),bad.slice(0,8).map(f=>miniRow(f,h('button',{class:'btn sm',onClick:e=>{e.stopPropagation();fileDialog(f)}},t('home.fixPath'))))));
   if(urgent.length) out.push(h('div',{class:'cols',style:{marginBottom:'28px'}},urgent));
   out.push(...homeGrid(act));
@@ -1466,7 +1490,7 @@ function fileCard(f){
       sm?null:h('button',{class:'ib',title:t('card.moreOptions'),onClick:e=>fileMenu(e.currentTarget,f)},'⋯')),
     h('div',{class:'path mono',title:f.path},midEllipsis(f.path,70)),
     f.desc?h('p',{class:'desc'},f.desc):null,
-    di?h('div',{class:'due '+di.k},'⏰ '+(f.dueLabel||t('deadline'))+' '+fmtDate(f.due)+', '+di.t):null,
+    di?h('div',{class:'due '+di.k},'⏰ '+(f.dueLabel||t('deadline'))+' '+fmtDate(f.due)+', '+di.t,recurBtn(f)):null,
     f.tags&&f.tags.length?h('div',{class:'tags'},f.tags.map(tagChip)):null,
     h('div',{class:'foot'},h('span',{class:'led '+st.k,title:st.t}),h('span',{class:'meta'},metaText(f)),sm?null:h('button',{class:'btn sm pri',onClick:()=>openFile(f)},fileType(f.path)==='folder'?t('card.openFolder'):t('card.open'))));
 }
@@ -1915,7 +1939,7 @@ function hubView(c){
 /* ================= Dialoger ================= */
 function fileDialog(f,preset={}){
   const isNew=!f;
-  const m=f?{...f,tags:[...(f.tags||[])]}:{id:uid(),title:preset.path?titleFromPath(preset.path):'',path:preset.path||'',desc:'',category:preset.category||UI.cat||'',tags:[],pinned:false,status:'aktiv',due:'',dueLabel:'',added:new Date().toISOString(),opens:0};
+  const m=f?{...f,tags:[...(f.tags||[])]}:{id:uid(),title:preset.path?titleFromPath(preset.path):'',path:preset.path||'',desc:'',category:preset.category||UI.cat||'',tags:[],pinned:false,status:'aktiv',due:'',dueLabel:'',recur:'',added:new Date().toISOString(),opens:0};
   let d;
   const title=h('input',{value:m.title,placeholder:t('fdlg.titlePlaceholder')});
   const path=h('input',{class:'mono',value:m.path,placeholder:t('fdlg.pathPlaceholder')});
@@ -1923,12 +1947,13 @@ function fileDialog(f,preset={}){
   const pick=kind=>browseDialog({mode:kind==='dir'?'folder':'files',multi:false,start:(path.value&&!isUrl(path.value))?(kind==='dir'?path.value:path.value.replace(/[\\/][^\\/]*$/,'')):'',onPick:ps=>{const p=ps[0];if(p){path.value=p;if(!title.value) title.value=titleFromPath(p)}}});
   const catSel=catSelect(m.category),tags=tagInput(m.tags);
   const desc=h('textarea',{},m.desc||''),due=h('input',{type:'date',value:m.due||''}),dueL=h('input',{value:m.dueLabel||'',placeholder:t('fdlg.dueLabelPlaceholder')});
+  const recurSel=h('select',{},h('option',{value:'',selected:!m.recur},t('recur.none')),h('option',{value:'daily',selected:m.recur==='daily'},t('recur.daily')),h('option',{value:'weekly',selected:m.recur==='weekly'},t('recur.weekly')),h('option',{value:'monthly',selected:m.recur==='monthly'},t('recur.monthly')));
   const stat=h('select',{},h('option',{value:'aktiv',selected:m.status!=='arkiv'},t('fdlg.active')),h('option',{value:'arkiv',selected:m.status==='arkiv'},t('fdlg.archive')));
   const pin=h('input',{type:'checkbox',checked:!!m.pinned});
   const doSave=()=>{
     const p=cleanPath(path.value);if(!p){toast(t('fdlg.giveAPath'),'bad');path.focus();return}
     if(S.files.some(x=>x!==f&&x.path.toLowerCase()===p.toLowerCase())&&!confirm(t('fdlg.pathExistsConfirm'))) return;
-    Object.assign(m,{title:title.value.trim()||titleFromPath(p),path:p,category:catSel.value,tags:tags.get(),desc:desc.value.trim(),due:due.value,dueLabel:dueL.value.trim(),status:stat.value,pinned:pin.checked});
+    Object.assign(m,{title:title.value.trim()||titleFromPath(p),path:p,category:catSel.value,tags:tags.get(),desc:desc.value.trim(),due:due.value,dueLabel:dueL.value.trim(),recur:recurSel.value,status:stat.value,pinned:pin.checked});
     if(isNew) S.files.push(m);else Object.assign(f,m);
     save();d.close();render();checkHealth([p]);
   };
@@ -1942,6 +1967,7 @@ function fileDialog(f,preset={}){
     fld(t('fld.tags'),tags,t('fld.tagsHint2')),
     fld(t('fld.description'),desc),
     h('div',{class:'two'},fld(t('fld.deadlineOptional'),due),fld(t('fld.whatIsDeadline'),dueL)),
+    fld(t('fld.recur'),recurSel,t('fld.recurHint')),
     h('label',{class:'chk'},pin,t('fdlg.pinAsFavorite'))],btns);
   (isNew?path:title).focus();
 }
