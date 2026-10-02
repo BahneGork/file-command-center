@@ -1285,10 +1285,11 @@ function shiftDay(d,shift,hol){
   for(let n=0;n<31&&!isWorkday(d,hol);n++) d=addDays(d,shift==='before'?-1:1);
   return d;
 }
-/* Første forekomst efter (eller med inclusive: fra og med) både "today" og startdatoen; null hvis reglen er slut */
+/* Første forekomst efter (eller med inclusive: fra og med) "today", regnet fra startdatoen dateStr: den planlagte dato
+   må ikke ligge før startdatoen, men den flyttede dato må (fx når startdatoen selv er en fridag); null hvis reglen er slut */
 function nextOcc(dateStr,r,today,inclusive){
   if(!today){today=new Date();today.setHours(0,0,0,0)}
-  const hol=holidaySet(),d0=pd(dateStr),floor=today>d0?today:d0;
+  const hol=holidaySet(),d0=pd(dateStr),floor=today;
   const every=Math.max(1,r.every|0),of=r.of==null?'date':r.of,pos=of==='date'&&!r.pos?d0.getDate():(r.pos||1);
   const days=r.days&&r.days.length?r.days:[d0.getDay()],mon=addDays(d0,-((d0.getDay()+6)%7));
   for(let k=0;k<20000;k++){
@@ -1296,7 +1297,7 @@ function nextOcc(dateStr,r,today,inclusive){
     if(r.unit==='day') c=[addDays(d0,k*every)];
     else if(r.unit==='week') c=days.map(w=>addDays(mon,7*every*k+(w+6)%7));
     else c=[monthOcc(d0.getFullYear(),d0.getMonth()+(r.unit==='year'?12:1)*every*k,of,pos,hol)].filter(Boolean);
-    const hit=c.map(a=>({a,d:shiftDay(a,r.shift,hol)})).sort((x,y)=>x.d-y.d).find(x=>inclusive?x.d>=floor:x.d>floor);
+    const hit=c.map(a=>({a,d:shiftDay(a,r.shift,hol)})).filter(x=>x.a>=d0).sort((x,y)=>x.d-y.d).find(x=>inclusive?x.d>=floor:x.d>floor);
     if(hit) return r.until&&ymd(hit.d)>r.until?null:{due:ymd(hit.d),anchor:ymd(hit.a)};
   }
   return null;
@@ -1328,7 +1329,7 @@ function nextDate(f,today){
   const r=f.recur&&f.recur.unit?f.recur:null;
   if(!r) return f.due;
   if(!today){today=new Date();today.setHours(0,0,0,0)}
-  const s=pd(f.due),o=nextOcc(f.due,r,today>s?today:s,true);
+  const o=nextOcc(f.due,r,today,true);
   return o&&o.due;
 }
 /* Alle datoer for en fil i [from;to]: den faste dato, eller gentagelsens datoer fra startdatoen */
@@ -1336,7 +1337,7 @@ function occurrences(f,from,to){
   if(!f.due) return [];
   const r=f.recur&&f.recur.unit?f.recur:null,hi=ymd(to);
   if(!r) return f.due>=ymd(from)&&f.due<=hi?[{f,date:f.due}]:[];
-  const out=[],s=pd(f.due);let floor=from>s?from:s,incl=true;
+  const out=[];let floor=from,incl=true;
   for(let i=0;i<3000;i++){
     const o=nextOcc(f.due,r,floor,incl);
     if(!o||o.due>hi) break;
