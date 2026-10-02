@@ -2662,7 +2662,7 @@ addEventListener('drop',e=>{e.preventDefault();dragDepth=0;document.body.classLi
 const MANUAL_HTML_DA=`
 <h2 id="m-start">Kom i gang</h2>
 <p>File Command Center samler adgangen til alle dine filer (dokumenter, mapper, links, hvad som helst) ét sted, uanset hvor de ligger. Dashboardet gemmer kun <b>stien</b> til filerne. Dine filer flyttes eller kopieres ikke.</p>
-<p class="muted sm">Manualen er sidst opdateret 23. september 2026. Knappen "Udskriv eller gem som PDF" øverst til højre giver en udskrift uden sidebaren.</p>
+<p class="muted sm">Manualen er sidst opdateret 2. oktober 2026. Knappen "Udskriv eller gem som PDF" øverst til højre giver en udskrift uden sidebaren.</p>
 <h3>Start og stop</h3>
 <p>Start appen fra Start-menuen (installeret udgave) eller ved at dobbeltklikke <code>FileCommandCenter.exe</code> (portabel udgave). Luk vinduet for at stoppe – dine ændringer er allerede gemt løbende.</p>
 <h3>Opdatering</h3>
@@ -2689,7 +2689,7 @@ const MANUAL_HTML_DA=`
 <li><b>Tilføj filerne</b> med <b>Tilføj → Vælg filer…</b> (eller Scan mapper…). Vælg hubben og skriv evt. fælles tags i dialogen.</li>
 <li><b>Finpuds med markér:</b> tryk på ☑ Markér, markér de filer, der hører sammen, og brug <b>Tilføj tag…</b>.</li>
 <li><b>Fastgør</b> de filer, du bruger til daglig, med ☆. De bliver til genveje øverst på hubben.</li>
-<li><b>Sæt frister</b> på filer til faste opgaver (Redigér…), og vælg en gentagelse, hvis filen skal bruges igen. Du behøver ikke sætte en dato; uden dato starter gentagelsen i dag. Næste dato vises af sig selv, der skal ikke trykkes på noget.</li>
+<li><b>Sæt frister</b> på filer, du bruger fast (Redigér…), og vælg en gentagelse, hvis filen skal bruges igen. Du behøver ikke sætte en dato; uden dato starter gentagelsen i dag. Næste dato vises af sig selv, der skal ikke trykkes på noget.</li>
 <li><b>Hverdag:</b> tryk <kbd>Ctrl</kbd>+<kbd>K</kbd>, skriv et par bogstaver, og tryk Enter. Eller åbn filen fra Overblik eller hubben.</li>
 <li><b>Ryd op:</b> tryk på "Tjek filer", ret de røde stier (eller brug "Genfind…", hvis en mappe er flyttet), og arkivér det, du ikke bruger mere.</li>
 </ol>
@@ -2799,6 +2799,7 @@ const MANUAL_HTML_DA=`
 <table>
 <tr><th>Valg</th><th>Virkning</th></tr>
 <tr><td>Åbn</td><td>Åbner filen eller mappen.</td></tr>
+<tr><td>Forhåndsvis…</td><td>Viser filens indhold i forhåndsvisningsruden (se nedenfor). Findes kun for filtyper, der kan vises.</td></tr>
 <tr><td>Vis i mappe</td><td>Åbner Stifinder med filen markeret. For links hedder valget "Åbn i browser". Findes ikke for mapper.</td></tr>
 <tr><td>Kopiér sti</td><td>Kopierer stien til udklipsholderen.</td></tr>
 <tr><td>Redigér…</td><td>Ændr sti, navn, hub, tags, beskrivelse, frist og status.</td></tr>
@@ -2806,6 +2807,9 @@ const MANUAL_HTML_DA=`
 <tr><td>Genfind…</td><td>Vises kun, når filen ikke kan findes. Se "Filer, der er flyttet" under Organiser.</td></tr>
 <tr><td>Fjern fra dashboardet</td><td>Sletter posten (ikke selve filen). Du bliver spurgt først.</td></tr>
 </table>
+<h3>Forhåndsvisning</h3>
+<p>Tryk på "👁 Forhåndsvisning" over fillisten for at få en rude i højre side, der viser indholdet af den valgte fil uden at åbne den. Klik på en fil for at vælge den, og dobbeltklik for at åbne den. Du kan også trykke på 👁 på et kort eller vælge "Forhåndsvis…" i ⋯-menuen.</p>
+<p>Regneark (xlsx) og CSV-filer vises som en tabel med de første rækker og kolonner, uden Excels talformatering, dog med datoer og procenter. Har regnearket flere ark, vælger du arket øverst i ruden. Billeder og PDF'er vises direkte, og tekstfiler som tekst. Andre filtyper har ingen forhåndsvisning. Filer læses kun, når de er valgt, og højst 50 MB. Træk i rudens venstre kant for at gøre den bredere eller smallere, og tryk ✕ for at skjule den.</p>
 
 <h2 id="m-status">Status på filerne</h2>
 <p>Dashboardet kontrollerer filerne, når siden åbnes, hver 5. minut (mens fanen er synlig) og når du trykker på <b>Tjek filer</b>. Kontrollen viser også, hvornår filen sidst er ændret, og hvor stor den er.</p>
@@ -2823,7 +2827,7 @@ const MANUAL_HTML_DA=`
 <li><b>Hvor:</b> alt gemmes i <code>data.json</code> i <code>%LOCALAPPDATA%\FileCommandCenter\</code>. Ændringer gemmes automatisk et øjeblik efter, at du har lavet dem. Nederst i sidebaren står "Gemt". Her ligger også dine hubs og deres noter, gemte mappegenveje og indstillinger (tema, visning og sortering).</li>
 <li><b>Dagligt:</b> ved dagens første ændring lægges en kopi af den gamle <code>data.json</code> i mappen <code>backups</code> (<code>data-ÅÅÅÅMMDD.json</code>). De seneste 30 beholdes. Kopien viser altså tilstanden fra før dagens ændringer.</li>
 <li><b>Før sletning:</b> hvis en gemning vil give færre filer end før, lægges først en kopi i <code>backups</code> som <code>gemt-foer-sletning-…</code>. De seneste 20 beholdes.</li>
-<li><b>Manuelt:</b> "Backup" nederst i sidebaren har "Hent backup" (en .json-fil), "Indlæs backup…" (erstatter alt i dashboardet, og du bliver spurgt først) "Fridage…" (helligdage og andre fridage til gentagne frister) og "Nulstil brugsstatistik" (nulstiller senest åbnet og mest brugte).</li>
+<li><b>Manuelt:</b> "Backup" nederst i sidebaren har "Hent backup" (en .json-fil), "Indlæs backup…" (erstatter alt i dashboardet, og du bliver spurgt først), "Fridage…" (helligdage og andre fridage til gentagne frister) og "Nulstil brugsstatistik" (nulstiller senest åbnet og mest brugte).</li>
 <li><b>Gendan en kopi:</b> luk appen, kopiér en fil fra <code>backups</code> over <code>data.json</code>, og start igen. Eller brug "Indlæs backup…".</li>
 <li><b>Flyt til en anden pc:</b> kopiér hele mappen inklusive <code>data.json</code>. Stierne skal findes på den nye pc for at være grønne.</li>
 </ul>
@@ -2874,6 +2878,7 @@ const MANUAL_HTML_DA=`
 <table>
 <tr><th>Dato</th><th>Ændring</th></tr>
 <tr><td>2. oktober 2026</td><td>Frister er nu datoer i en kalender: en gentagelse er en fast plan ud fra startdatoen, og næste dato vises af sig selv. ✓ og "Fortryd" er fjernet, ligesom "Regn fra den dag, jeg markerer udført". Passerede frister vises som datoer i fortiden, og siden Frister kan også vise perioder før i dag.</td></tr>
+<tr><td>1. oktober 2026</td><td>En gentagelse kræver ikke længere en dato; uden dato starter den i dag. Den portable udgave opdaterer sig selv via "Opdater nu", og versionsnummeret står nederst i sidebaren (med "Portable" i den portable udgave).</td></tr>
 <tr><td>30. september 2026</td><td>Gentagne frister med faste mønstre eller et tilpasset mønster, fridage, ✓ til næste dato og "Fortryd". Ny side Frister med visning pr. dag, uge, måned, kvartal og år. "Genfind…" til filer, der er flyttet. Eksport af frister til kalender (.ics).</td></tr>
 <tr><td>22. september 2026</td><td>Dashboardet hedder nu File Command Center og håndterer alle filtyper, ikke kun Excel og CSV: filvælgeren og Scan mapper viser som standard alt, og forhåndsvisningsruden virker nu også på billeder, PDF'er og tekstfiler. Forhåndsvisningsruden kan trækkes bredere eller smallere i venstre kant.</td></tr>
 <tr><td>21. september 2026</td><td>Kategorier og hubs er slået sammen til hubs. Alle hubs har egen side med genveje og noter. Gamle kategorier er blevet til hubs.</td></tr>
@@ -2886,7 +2891,7 @@ const MANUAL_HTML_DA=`
 const MANUAL_HTML_EN=`
 <h2 id="m-start">Getting started</h2>
 <p>File Command Center brings together access to all your files (documents, folders, links, anything at all) in one place, wherever they live. The dashboard only stores the <b>path</b> to each file. Your files are never moved or copied.</p>
-<p class="muted sm">This manual was last updated 23 September 2026. The "Print or save as PDF" button in the top right gives you a printout without the sidebar.</p>
+<p class="muted sm">This manual was last updated 2 October 2026. The "Print or save as PDF" button in the top right gives you a printout without the sidebar.</p>
 <h3>Starting and stopping</h3>
 <p>Start the app from the Start menu (installed version) or by double-clicking <code>FileCommandCenter.exe</code> (portable version). Close the window to stop – your changes are already saved as you go.</p>
 <h3>Updating</h3>
@@ -2913,7 +2918,7 @@ const MANUAL_HTML_EN=`
 <li><b>Add the files</b> with <b>Add → Pick files…</b> (or Scan folders…). Choose the hub and optionally write shared tags in the dialog.</li>
 <li><b>Fine-tune with Select:</b> press ☑ Select, select the files that belong together, and use <b>Add tag…</b>.</li>
 <li><b>Pin</b> the files you use daily with ☆. They become shortcuts at the top of the hub.</li>
-<li><b>Set deadlines</b> on files for recurring tasks (Edit…), and choose a recurrence if the file is used again. You don't need to set a date; without one, the recurrence starts today. The next date is shown by itself; there is nothing to press.</li>
+<li><b>Set deadlines</b> on files you use regularly (Edit…), and choose a recurrence if the file is used again. You don't need to set a date; without one, the recurrence starts today. The next date is shown by itself; there is nothing to press.</li>
 <li><b>Everyday use:</b> press <kbd>Ctrl</kbd>+<kbd>K</kbd>, type a few letters, and press Enter. Or open the file from the Overview or the hub.</li>
 <li><b>Clean up:</b> press "Check files", fix the red paths (or use "Find again…" if a folder has moved), and archive what you no longer use.</li>
 </ol>
@@ -3023,6 +3028,7 @@ const MANUAL_HTML_EN=`
 <table>
 <tr><th>Option</th><th>Effect</th></tr>
 <tr><td>Open</td><td>Opens the file or folder.</td></tr>
+<tr><td>Preview…</td><td>Shows the file's content in the preview pane (see below). Only available for file types that can be shown.</td></tr>
 <tr><td>Show in folder</td><td>Opens File Explorer with the file selected. For links this option is called "Open in browser". Not available for folders.</td></tr>
 <tr><td>Copy path</td><td>Copies the path to the clipboard.</td></tr>
 <tr><td>Edit…</td><td>Change path, name, hub, tags, description, deadline and status.</td></tr>
@@ -3030,6 +3036,9 @@ const MANUAL_HTML_EN=`
 <tr><td>Find again…</td><td>Only shown when the file cannot be found. See "Files that have moved" under Organizing.</td></tr>
 <tr><td>Remove from dashboard</td><td>Deletes the entry (not the file itself). You're asked to confirm first.</td></tr>
 </table>
+<h3>Preview</h3>
+<p>Press "👁 Preview" above the file list to get a pane on the right that shows the content of the selected file without opening it. Click a file to select it, and double-click to open it. You can also press 👁 on a card or choose "Preview…" in the ⋯ menu.</p>
+<p>Spreadsheets (xlsx) and CSV files are shown as a table with the first rows and columns, without Excel's number formatting, except dates and percentages. If the spreadsheet has several sheets, you pick the sheet at the top of the pane. Images and PDFs are shown directly, and text files as text. Other file types have no preview. Files are only read when selected, and at most 50 MB. Drag the pane's left edge to make it wider or narrower, and press ✕ to hide it.</p>
 
 <h2 id="m-status">File status</h2>
 <p>The dashboard checks the files when the page opens, every 5 minutes (while the tab is visible) and when you press <b>Check files</b>. The check also shows when the file was last modified, and how big it is.</p>
@@ -3047,7 +3056,7 @@ const MANUAL_HTML_EN=`
 <li><b>Where:</b> everything is saved in <code>data.json</code> in <code>%LOCALAPPDATA%\FileCommandCenter\</code>. Changes are saved automatically a moment after you make them. "Saved" is shown at the bottom of the sidebar. This is also where your hubs and their notes, saved folder shortcuts, and settings (theme, view and sort order) live.</li>
 <li><b>Daily:</b> on the day's first change, a copy of the old <code>data.json</code> is placed in the <code>backups</code> folder (<code>data-YYYYMMDD.json</code>). The last 30 are kept. The copy therefore shows the state from before that day's changes.</li>
 <li><b>Before a deletion:</b> if saving would result in fewer files than before, a copy is placed in <code>backups</code> first, as <code>gemt-foer-sletning-…</code> ("saved-before-deletion"). The last 20 are kept.</li>
-<li><b>Manually:</b> "Backup" at the bottom of the sidebar has "Get backup" (a .json file), "Load backup…" (replaces everything in the dashboard, and you're asked to confirm first) "Days off…" (public holidays and other days off for recurring deadlines) and "Reset usage statistics" (resets recently opened and most used).</li>
+<li><b>Manually:</b> "Backup" at the bottom of the sidebar has "Get backup" (a .json file), "Load backup…" (replaces everything in the dashboard, and you're asked to confirm first), "Days off…" (public holidays and other days off for recurring deadlines) and "Reset usage statistics" (resets recently opened and most used).</li>
 <li><b>Restoring a copy:</b> close the app, copy a file from <code>backups</code> over <code>data.json</code>, and start again. Or use "Load backup…".</li>
 <li><b>Moving to another PC:</b> copy the whole folder including <code>data.json</code>. The paths need to exist on the new PC to show green.</li>
 </ul>
@@ -3098,6 +3107,7 @@ const MANUAL_HTML_EN=`
 <table>
 <tr><th>Date</th><th>Change</th></tr>
 <tr><td>2 October 2026</td><td>Deadlines are now dates in a calendar: a recurrence is a fixed schedule from its start date, and the next date is shown by itself. ✓ and "Undo" are gone, as is "Count from the day I mark it done". Passed deadlines are shown as dates in the past, and the Deadlines page can also show periods before today.</td></tr>
+<tr><td>1 October 2026</td><td>A recurrence no longer needs a date; without one, it starts today. The portable version updates itself via "Install now", and the version number is shown at the bottom of the sidebar (with "Portable" in the portable version).</td></tr>
 <tr><td>30 September 2026</td><td>Recurring deadlines with fixed or custom patterns, days off, ✓ to move to the next date, and "Undo". New Deadlines page with day, week, month, quarter and year views. "Find again…" for files that have moved. Export of deadlines to a calendar (.ics).</td></tr>
 <tr><td>22 September 2026</td><td>The dashboard is now called File Command Center and handles all file types, not just Excel and CSV: the file picker and Scan folders now show everything by default, and the preview pane now also works on images, PDFs and text files. The preview pane can be dragged wider or narrower at its left edge.</td></tr>
 <tr><td>21 September 2026</td><td>Categories and hubs have been merged into hubs. Every hub has its own page with shortcuts and notes. Old categories have become hubs.</td></tr>
