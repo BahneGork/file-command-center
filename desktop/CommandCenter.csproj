@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FileCommandCenter</AssemblyName>
     <RootNamespace>CommandCenter</RootNamespace>
-    <!-- Eneste sted app-versionen sættes. Skal matche Version i installer\Package.wxs og git-tagget (vX.Y.Z) ved en udgivelse. -->
+    <!-- Eneste sted app-versionen sættes (MSI'en læser den fra exe'en). Skal matche git-tagget (vX.Y.Z) ved en udgivelse. -->
     <Version>1.0.8</Version>
     <!-- Udgave: "installer" (standard) eller "portable" (byg med -p:Flavor=portable). Bygges ind i exe'en, så appen ved, hvordan den skal opdatere sig selv. -->
     <Flavor Condition="'$(Flavor)' == ''">installer</Flavor>

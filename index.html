@@ -765,11 +765,11 @@ da:{
 'start.helperUnreachableBanner':'Appen svarer ikke lige nu. Prøv at genstarte den – dine ændringer gemmes, når den svarer igen.',
 'dnd.browsersCantSeePath':'Browsere må ikke se, hvor en fil ligger. Vælg filerne i Windows-dialogen i stedet.',
 'upd.installingTitle':'Opdaterer…',
-'upd.installingBody':'<p>Installeren er startet. Følg dialogen fra Windows, og genåbn File Command Center bagefter.</p>',
+'upd.installingBody':'Installeren er startet. Følg dialogen fra Windows, og genåbn File Command Center bagefter.',
 'upd.fetchingPct':(v,pct)=>'Henter opdatering '+v+'… '+pct+'%',
 'upd.willAskPermission':'Windows beder snart om tilladelse til at installere.',
 'upd.portableRestart':'Den portable udgave skifter selv sine filer ud og genstarter.',
-'upd.portableBody':'<p>Den nye version er lagt på plads og starter om et øjeblik.</p>',
+'upd.portableBody':'Den nye version er lagt på plads og starter om et øjeblik.',
 'app.portable':'Portable',
 'app.portableTitle':'Den portable udgave (fra .zip). Opdateres af sig selv via "Opdater nu".',
 'upd.newVersionAvailable':v=>'📦 Ny version tilgængelig: '+v,
@@ -777,7 +777,7 @@ da:{
 'upd.viewChanges':'Se ændringer',
 'upd.later':'Senere',
 'init.helperNotRespondingTitle':'Kunne ikke starte dashboardet',
-'init.helperNotRespondingBody':m=>'<p>Dashboardet kunne ikke starte ('+m+').</p><p>Prøv at lukke og åbne appen igen.</p>',
+'init.helperNotRespondingBody':m=>'Dashboardet kunne ikke starte ('+m+').\n\nPrøv at lukke og åbne appen igen.',
 'help.sub':'Hjælp',
 'help.printOrSavePdf':'Udskriv eller gem som PDF',
 'manual.toc':'Indhold',
@@ -1199,11 +1199,11 @@ da:{
 'start.helperUnreachableBanner':'The app isn’t responding right now. Try restarting it – your changes will be saved once it responds again.',
 'dnd.browsersCantSeePath':'Browsers aren’t allowed to see where a file is on disk. Pick the files in the Windows dialog instead.',
 'upd.installingTitle':'Updating…',
-'upd.installingBody':'<p>The installer has started. Follow the dialog from Windows, then reopen File Command Center afterwards.</p>',
+'upd.installingBody':'The installer has started. Follow the dialog from Windows, then reopen File Command Center afterwards.',
 'upd.fetchingPct':(v,pct)=>'Fetching update '+v+'… '+pct+'%',
 'upd.willAskPermission':'Windows will ask for permission to install shortly.',
 'upd.portableRestart':'The portable version replaces its own files and restarts.',
-'upd.portableBody':'<p>The new version is in place and starts in a moment.</p>',
+'upd.portableBody':'The new version is in place and starts in a moment.',
 'app.portable':'Portable',
 'app.portableTitle':'The portable version (from the .zip). Updates itself via "Install now".',
 'upd.newVersionAvailable':v=>'📦 New version available: '+v,
@@ -1211,7 +1211,7 @@ da:{
 'upd.viewChanges':'View changes',
 'upd.later':'Later',
 'init.helperNotRespondingTitle':'Could not start the dashboard',
-'init.helperNotRespondingBody':m=>'<p>The dashboard could not start ('+m+').</p><p>Try closing and reopening the app.</p>',
+'init.helperNotRespondingBody':m=>'The dashboard could not start ('+m+').\n\nTry closing and reopening the app.',
 'help.sub':'Help',
 'help.printOrSavePdf':'Print or save as PDF',
 'manual.toc':'Contents',
@@ -3129,7 +3129,7 @@ function helpView(){
 }
 
 /* ================= Start ================= */
-function showMessage(title,html){document.body.replaceChildren(h('div',{style:{maxWidth:'640px',margin:'12vh auto',padding:'0 20px',position:'relative',zIndex:1}},h('h1',{style:{font:'600 32px var(--display)'}},title),h('div',{html})))}
+function showMessage(title,text){document.body.replaceChildren(h('div',{style:{maxWidth:'640px',margin:'12vh auto',padding:'0 20px',position:'relative',zIndex:1}},h('h1',{style:{font:'600 32px var(--display)'}},title),h('div',{style:{whiteSpace:'pre-line'}},text)))}
 async function ping(){
   try{await api('/api/ping');if(!helperOnline){helperOnline=true;render()}}
   catch{if(helperOnline){helperOnline=false;render()}}

@@ -8,7 +8,9 @@ static class FileOps
     static readonly string[] ExcelExts = { ".xlsx", ".xlsm", ".xlsb", ".xls", ".xltx", ".xltm", ".csv" };
     // Filtyper der aldrig åbnes via dashboardet (programmer/scripts)
     static readonly string[] Blocked = { ".exe", ".bat", ".cmd", ".com", ".scr", ".ps1", ".psm1", ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh",
-        ".msi", ".msp", ".hta", ".reg", ".lnk", ".jar", ".dll", ".cpl", ".pif", ".url", ".appref-ms" };
+        ".msi", ".msp", ".hta", ".reg", ".lnk", ".jar", ".dll", ".cpl", ".pif", ".url", ".appref-ms",
+        ".xll", ".msc", ".chm", ".scf", ".inf", ".sct", ".wsc", ".iqy", ".mst", ".psc1", ".ps1xml", ".gadget", ".diagcab", ".application",
+        ".appx", ".appxbundle", ".msix", ".msixbundle", ".settingcontent-ms", ".library-ms", ".search-ms", ".searchconnector-ms" };
     const int MaxPreviewBytes = 50 * 1024 * 1024;
 
     static string Ext(string p) => Path.GetExtension(p).ToLowerInvariant();

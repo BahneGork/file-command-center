@@ -77,10 +77,14 @@ sealed class MainForm : Form
     async void OnMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         if (!Uri.TryCreate(e.Source, UriKind.Absolute, out var src) || src.Host != Host) return;
+        // En besked uden id/path ignoreres (en undtagelse her ville lukke appen, da metoden er async void)
         using var doc = JsonDocument.Parse(e.WebMessageAsJson);
         var msg = doc.RootElement;
-        var id = msg.GetProperty("id").GetInt32();
-        var path = msg.GetProperty("path").GetString() ?? "";
+        if (msg.ValueKind != JsonValueKind.Object
+            || !msg.TryGetProperty("id", out var idEl) || !idEl.TryGetInt32(out var id)
+            || !msg.TryGetProperty("path", out var pathEl) || pathEl.ValueKind != JsonValueKind.String) return;
+        var path = pathEl.GetString()!;
+        if (!msg.TryGetProperty("body", out var body)) return;
         if (path == "/flushed") { flushed?.TrySetResult(); return; }
 
         // Downloadfremgang sendes løbende som en "event"-besked, ikke som svar på et bestemt kald
@@ -98,7 +102,7 @@ sealed class MainForm : Form
         }
 
         string reply; var ok = true;
-        try { reply = $"{{\"id\":{id},\"ok\":true,\"data\":{await Api.Handle(path, msg.GetProperty("body"), this, onProgress)}}}"; }
+        try { reply = $"{{\"id\":{id},\"ok\":true,\"data\":{await Api.Handle(path, body, this, onProgress)}}}"; }
         catch (Exception ex) { ok = false; reply = $"{{\"id\":{id},\"ok\":false,\"error\":{JsonSerializer.Serialize(ex.Message)}}}"; }
         if (id > 0) web.CoreWebView2.PostWebMessageAsJson(reply);
 

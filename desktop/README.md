@@ -12,7 +12,9 @@ version: there is **no local web server and no open network port**.
 - Reads/writes its own data: `%LOCALAPPDATA%\FileCommandCenter\` (`data.json`, `backups\`, `WebView2\`).
 - Tracks and opens any file type, not just Excel/CSV: the file picker, "Scan mapper…" and the folder browser all show every file type by default (with an opt-in filter to narrow to Excel/CSV).
 - Opens files in the program Windows has associated with them (e.g. Excel), only for paths that are registered on the dashboard.
-- Never opens: `.exe .bat .cmd .com .scr .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .msi .msp .hta .reg .lnk .jar .dll .cpl .pif .url .appref-ms`.
+  The page itself keeps that list, so this check guards against mistakes, not against a page that has been tampered
+  with; what protects the page is that it can only load its own files (see "Network access").
+- Never opens: `.exe .bat .cmd .com .scr .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .msi .msp .hta .reg .lnk .jar .dll .cpl .pif .url .appref-ms .xll .msc .chm .scf .inf .sct .wsc .iqy .mst .psc1 .ps1xml .gadget .diagcab .application .appx .appxbundle .msix .msixbundle .settingcontent-ms .library-ms .search-ms .searchconnector-ms`.
 - Reads file contents only for the preview pane, for the file the user has selected (read-only, registered paths only, max 50 MB). The pane renders spreadsheets/CSV as a table, images inline, PDFs with the native WebView2 PDF viewer, and common text/code files as text; other types show file info only.
 - Lists folders / shows the Windows file and folder dialogs so the user can pick files.
 - Brings the Excel or Explorer window to the front after opening (uses `user32.dll` window APIs).
