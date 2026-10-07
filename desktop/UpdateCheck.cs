@@ -2,11 +2,12 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace CommandCenter;
 
-record UpdateInfo(string Version, string Notes, string HtmlUrl, string AssetUrl, string AssetName, long AssetSize);
+record UpdateInfo(string Version, string Notes, string HtmlUrl, string AssetUrl, string AssetName, long AssetSize, string Sha256);
 
 // Tjekker GitHub Releases for en nyere version og henter/starter installeren.
 // Kun det her lag må tale med nettet - siden i WebView'en er stadig spærret til kun at tale med sig selv.
@@ -57,7 +58,9 @@ static class UpdateCheck
                 HtmlUrl: root.TryGetProperty("html_url", out var h) ? h.GetString() ?? "" : "",
                 AssetUrl: a2.GetProperty("browser_download_url").GetString()!,
                 AssetName: a2.GetProperty("name").GetString()!,
-                AssetSize: a2.GetProperty("size").GetInt64());
+                AssetSize: a2.GetProperty("size").GetInt64(),
+                // GitHub oplyser "sha256:<hex>" for hver fil i en udgivelse; tom, hvis feltet mangler
+                Sha256: a2.TryGetProperty("digest", out var d) && d.GetString() is { } dg && dg.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? dg[7..] : "");
         }
         catch { return null; }
     }
@@ -88,6 +91,16 @@ static class UpdateCheck
         {
             File.Delete(tmp);
             throw new ApiError("Downloadet fil har forkert størrelse - prøv igen.");
+        }
+        if (info.Sha256.Length > 0)
+        {
+            string hash;
+            await using (var fs = File.OpenRead(tmp)) hash = Convert.ToHexString(await SHA256.HashDataAsync(fs));
+            if (!hash.Equals(info.Sha256, StringComparison.OrdinalIgnoreCase))
+            {
+                File.Delete(tmp);
+                throw new ApiError("Downloadet fil stemmer ikke med udgivelsen - prøv igen.");
+            }
         }
         if (IsPortable) { ReplacePortable(tmp); return tmp; }
         // Kun til test: springer den rigtige installer-start over, så en automatiseret test aldrig popper en UAC-dialog

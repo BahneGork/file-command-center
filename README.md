@@ -26,6 +26,10 @@ Fra [Releases](https://github.com/BahneGork/file-command-center/releases/latest)
 
 Begge er selvstændige builds (intet .NET skal være installeret i forvejen).
 
+## Test
+
+Fristernes og gentagelsernes beregninger (`index.html`) testes med Node's indbyggede testkører, uden pakker: kør `node --test` fra repoets rod.
+
 ## Ikke gjort endnu
 
 - **Kodesignering.** Installeren er usigneret, så Windows vil advare (SmartScreen/Defender).
