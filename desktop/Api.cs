@@ -1,10 +1,19 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace CommandCenter;
 
 sealed class ApiError(string message) : Exception(message);
 
-// De samme "ruter" som PowerShell-hjælperen havde, men kaldt via beskeder fra siden (ingen netværksport)
+// The app's own messages follow the language chosen on the page, which is sent with every call (see MainForm).
+// Before the page has loaded, the saved choice is used, or else the Windows language, the same way the page picks it.
+static class L
+{
+    public static bool En = Store.SavedLang() is { } lang ? lang == "en" : CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    public static string T(string da, string en) => En ? en : da;
+}
+
+// The same "routes" the PowerShell helper had, but called through messages from the page (no network port)
 static class Api
 {
     static string Str(JsonElement b, string k) => b.ValueKind == JsonValueKind.Object && b.TryGetProperty(k, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
@@ -14,10 +23,10 @@ static class Api
 
     static void RequireRegistered(string p)
     {
-        if (!Store.IsRegistered(p)) throw new ApiError("Stien er ikke registreret i dashboardet");
+        if (!Store.IsRegistered(p)) throw new ApiError(L.T("Stien er ikke registreret i dashboardet", "The path is not registered on the dashboard"));
     }
 
-    // Returnerer svaret som JSON-tekst. onProgress bruges kun af /api/update/install til at rapportere downloadfremgang undervejs.
+    // Returns the reply as JSON text. onProgress is only used by /api/update/install to report download progress along the way.
     public static async Task<string> Handle(string path, JsonElement body, IWin32Window owner, Action<long, long>? onProgress = null)
     {
         switch (path)
@@ -72,15 +81,15 @@ static class Api
                 using var dlg = new OpenFileDialog
                 {
                     Multiselect = Bool(body, "multi"),
-                    Title = "Vælg filer til dashboardet",
-                    Filter = "Alle filer|*.*|Excel og CSV|*.xlsx;*.xlsm;*.xlsb;*.xls;*.csv",
+                    Title = L.T("Vælg filer til dashboardet", "Choose files for the dashboard"),
+                    Filter = L.T("Alle filer", "All files") + "|*.*|" + L.T("Excel og CSV", "Excel and CSV") + "|*.xlsx;*.xlsm;*.xlsb;*.xls;*.csv",
                 };
                 return Json(new { paths = dlg.ShowDialog(owner) == DialogResult.OK ? dlg.FileNames : [] });
             }
 
             case "/api/pickfolder":
             {
-                using var dlg = new FolderBrowserDialog { Description = "Vælg en mappe" };
+                using var dlg = new FolderBrowserDialog { Description = L.T("Vælg en mappe", "Choose a folder") };
                 return Json(new { path = dlg.ShowDialog(owner) == DialogResult.OK ? dlg.SelectedPath : null });
             }
 
@@ -95,13 +104,13 @@ static class Api
             case "/api/update/install":
             {
                 var info = await UpdateCheck.CheckAsync();
-                if (info is null) throw new ApiError("Ingen opdatering fundet - prøv at tjekke igen.");
+                if (info is null) throw new ApiError(L.T("Ingen opdatering fundet - prøv at tjekke igen.", "No update found - try checking again."));
                 await UpdateCheck.DownloadAndLaunchInstallerAsync(info, (received, total) => onProgress?.Invoke(received, total));
                 return "{\"ok\":true}";
             }
 
             default:
-                throw new ApiError("Ikke fundet");
+                throw new ApiError(L.T("Ikke fundet", "Not found"));
         }
     }
 }
