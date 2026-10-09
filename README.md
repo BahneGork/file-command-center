@@ -2,7 +2,7 @@
 
 A small dashboard that gathers your files in one place (Excel, PDF, images, documents, folders, links – any type), whether they live locally, on a network drive or in OneDrive. The dashboard stores only the **path** to each file; files are never moved or copied.
 
-
+![The Overview: hubs, a deadline and all files as cards](screenshots/filecommandcenter1.jpg)
 
 A real Windows app (.NET 8 + WebView2), with no web server and no open port. See **[desktop/README.md](desktop/README.md)** for build instructions, what the app does on the PC, and requirements.
 
