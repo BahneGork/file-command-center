@@ -9,7 +9,7 @@
     <AssemblyName>FileCommandCenter</AssemblyName>
     <RootNamespace>CommandCenter</RootNamespace>
     <!-- The only place the app version is set (the MSI reads it from the exe). Must match the git tag (vX.Y.Z) for a release. -->
-    <Version>1.0.10</Version>
+    <Version>1.0.11</Version>
     <!-- Flavor: "installer" (default) or "portable" (build with -p:Flavor=portable). Built into the exe, so the app knows how to update itself. -->
     <Flavor Condition="'$(Flavor)' == ''">installer</Flavor>
   </PropertyGroup>
